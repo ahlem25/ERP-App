@@ -8,6 +8,3 @@ spring:
   cloud:
     config:
       profile: ${spring.profiles.active}
-eureka:
-  client:
-    enabled: false
