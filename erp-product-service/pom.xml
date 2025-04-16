@@ -61,8 +61,13 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>com.albinus.netflix.lib</groupId>
-            <artifactId>netflix-data</artifactId>
+            <groupId>com.iss4u.erp.lib</groupId>
+            <artifactId>erp-common</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.iss4u.erp.lib</groupId>
+            <artifactId>utils-lib</artifactId>
             <version>${project.version}</version>
         </dependency>
         <!-- Lombok Dependency -->
