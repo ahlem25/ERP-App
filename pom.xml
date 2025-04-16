@@ -33,9 +33,9 @@
     <!-- ############################# MODULES ############################## -->
     <!-- #################################################################### -->
     <modules>
-<!--        <module>erp-api-gateway</module>-->
-<!--        <module>erp-service-discovery</module>-->
-<!--        <module>erp-config</module>-->
+        <module>erp-api-gateway</module>
+        <module>erp-service-discovery</module>
+        <module>erp-config</module>
         <module>erp-user-service</module>
         <module>erp-product-service</module>
         <module>erp-category-service</module>
@@ -52,21 +52,21 @@
     <!-- #################################################################### -->
     <dependencyManagement>
         <dependencies>
-            <!--<dependency>
+            <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-api-gateway</artifactId>
                 <version>${project.version}</version>
-            </dependency>-->
-           <!-- <dependency>
+            </dependency>
+            <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-config</artifactId>
                 <version>${project.version}</version>
-            </dependency>-->
-           <!-- <dependency>
+            </dependency>
+            <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-service-discovery</artifactId>
                 <version>${project.version}</version>
-            </dependency>-->
+            </dependency>
             <!--ERP Services -->
             <dependency>
                 <groupId>com.iss4u.erp.services</groupId>

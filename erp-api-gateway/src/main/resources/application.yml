@@ -1,0 +1,14 @@
+spring:
+  config:
+    import: "configserver:http://localhost:8012"
+  application:
+    name: erp-api-gateway-service
+  profiles:
+    active: dev
+  cloud:
+    config:
+      profile: ${spring.profiles.active}
+eureka:
+  client:
+    enabled: false
+
