@@ -19,11 +19,10 @@ public class Article {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private String code_article;
-    private String nom_article;
-    private String groupe_article;
-    private String unite_de_mesure;
-    private Boolean maintenir_stock;
-    private Double prix_de_vente_standard;
+    private String codeArticle;
+    private String nomArticle;
+    private String groupeArticle;
+    private String JsonProperty;
+    private Boolean maintenirStock;
+    private Double prixDeVenteStandard;
 }

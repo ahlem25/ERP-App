@@ -1,5 +1,6 @@
 package com.iss4u.erp.services.dto.article.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -9,12 +10,10 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class ArticleResponse {
     private Long id;
-    private String code_article;
-    private String nom_article;
-    private String groupe_article;
-    private String unite_de_mesure;
-    private Boolean maintenir_stock;
-    private Double prix_de_vente_standard;
-
-
+    private String codeArticle;
+    private String nomArticle;
+    private String groupeArticle;
+    private String JsonProperty;
+    private Boolean maintenirStock;
+    private Double prixDeVenteStandard;
 }
