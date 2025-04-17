@@ -43,7 +43,7 @@
         <module>erp-inventory-service</module>
         <module>erp-supplier-service</module>
         <module>erp-order-service</module>
-        <module>erp-ihm-service</module>
+<!--        <module>erp-ihm-service</module>-->
         <module>erp-common</module>
         <module>utils-lib</module>
     </modules>

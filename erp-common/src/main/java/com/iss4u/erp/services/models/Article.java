@@ -5,10 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-
-;
-;
+import java.util.List;
 
 @Entity
 @Table(name = "articles")
@@ -21,8 +18,18 @@ public class Article {
     private Long id;
     private String codeArticle;
     private String nomArticle;
-    private String groupeArticle;
-    private String JsonProperty;
-    private Boolean maintenirStock;
-    private Double prixDeVenteStandard;
+    private Boolean stockable;
+    private String unite;
+    private String image;
+    private Double prixVente;
+
+    @ManyToOne
+    @JoinColumn(name = "groupe_article_id")
+    private GroupeArticle groupeArticle;
+
+    @OneToMany(mappedBy = "article")
+    private List<PrixArticle> prixArticles;
+
+    @OneToMany(mappedBy = "article")
+    private List<DemandeMateriel> demandesMateriel;
 }
