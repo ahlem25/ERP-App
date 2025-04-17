@@ -10,8 +10,8 @@ import lombok.AllArgsConstructor;
 public class ArticleRequest {
     private String codeArticle;
     private String nomArticle;
-    private String groupeArticle;
-    private String JsonProperty;
-    private Boolean maintenirStock;
-    private Double prixDeVenteStandard;
+    private Boolean stockable;
+    private String unite;
+    private String image;
+    private Double prixVente;
 }
