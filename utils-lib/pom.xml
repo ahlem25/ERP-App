@@ -17,8 +17,8 @@
     <description>Utils Layer for ERP App</description>
 
     <properties>
-        <springfox.version>3.0.0</springfox.version>
-        <jackson.dataformat.xml.version>2.10.2</jackson.dataformat.xml.version>
+        <openapi.version>2.5.0</openapi.version>
+        <keycloak.version>22.0.1</keycloak.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -29,34 +29,32 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-        <!-- begin Swagger ui dependencies -->
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-boot-starter</artifactId>
-            <version>${springfox.version}</version>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+        <!-- begin openapi -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${openapi.version}</version>
+        </dependency>
+        <!-- end openapi -->
+        <!-- begin security -->
+<!--        <dependency>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-spring-boot-starter</artifactId>
+            <version>${keycloak.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-bean-validators</artifactId>
-            <version>${springfox.version}</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger-ui</artifactId>
-            <version>${springfox.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-xml</artifactId>
-            <version>${jackson.dataformat.xml.version}</version>
-        </dependency>
-        <!-- end Swagger ui dependencies -->
-        <!-- begin spring security core dependencies -->
-    <!--    <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>-->
-        <!-- end spring security core dependencies -->
+        <!-- end security -->
         <!-- begin json web token dependencies-->
      <!--   <dependency>
             <groupId>io.jsonwebtoken</groupId>
