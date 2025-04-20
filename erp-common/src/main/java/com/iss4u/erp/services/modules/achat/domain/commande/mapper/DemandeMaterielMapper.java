@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.commande.models.DemandeMateri
 @Mapper(componentModel = "spring")
 public interface DemandeMaterielMapper {
     DemandeMaterielResponse toResponse(DemandeMateriel entity);
+
     DemandeMateriel toEntity(DemandeMaterielRequest dto);
+
     void updateFromDto(DemandeMaterielRequest dto, @MappingTarget DemandeMateriel entity);
 }

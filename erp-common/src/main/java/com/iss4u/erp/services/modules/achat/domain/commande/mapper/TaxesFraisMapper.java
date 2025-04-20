@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.commande.models.TaxesFrais;
 @Mapper(componentModel = "spring")
 public interface TaxesFraisMapper {
     TaxesFraisResponse toResponse(TaxesFrais entity);
+
     TaxesFrais toEntity(TaxesFraisRequest dto);
+
     void updateFromDto(TaxesFraisRequest dto, @MappingTarget TaxesFrais entity);
 }

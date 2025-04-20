@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.commande.models.AppelOffre;
 @Mapper(componentModel = "spring")
 public interface AppelOffreMapper {
     AppelOffreResponse toResponse(AppelOffre entity);
+
     AppelOffre toEntity(AppelOffreRequest dto);
+
     void updateFromDto(AppelOffreRequest dto, @MappingTarget AppelOffre entity);
 }

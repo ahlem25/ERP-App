@@ -34,4 +34,7 @@ public class Client {
 
     @OneToMany(mappedBy = "client")
     private List<Devis> devis;
+
+    @ManyToOne
+    private Vendeur vendeur;
 }

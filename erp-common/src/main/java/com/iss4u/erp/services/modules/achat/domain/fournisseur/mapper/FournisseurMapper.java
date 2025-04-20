@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.fournisseur.models.Fournisseu
 @Mapper(componentModel = "spring")
 public interface FournisseurMapper {
     FournisseurResponse toResponse(Fournisseur entity);
+
     Fournisseur toEntity(FournisseurRequest dto);
+
     void updateFromDto(FournisseurRequest dto, @MappingTarget Fournisseur entity);
 }
