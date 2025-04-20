@@ -1,8 +1,7 @@
 package com.iss4u.erp.services.modules.stock.domain.models;
 
 import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +13,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class NumeroSerie {
-private String idSerie;
-    @ManyToOne private Article article;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String idSerie;
+    @ManyToOne
+    private Article article;
     private Double garantie;
 }

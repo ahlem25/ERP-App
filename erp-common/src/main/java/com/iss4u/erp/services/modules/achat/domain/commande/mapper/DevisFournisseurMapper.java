@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.commande.models.DevisFourniss
 @Mapper(componentModel = "spring")
 public interface DevisFournisseurMapper {
     DevisFournisseurResponse toResponse(DevisFournisseur entity);
+
     DevisFournisseur toEntity(DevisFournisseurRequest dto);
+
     void updateFromDto(DevisFournisseurRequest dto, @MappingTarget DevisFournisseur entity);
 }

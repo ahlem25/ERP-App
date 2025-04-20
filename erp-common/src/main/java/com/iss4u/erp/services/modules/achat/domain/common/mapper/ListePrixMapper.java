@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.common.models.ListePrix;
 @Mapper(componentModel = "spring")
 public interface ListePrixMapper {
     ListePrixResponse toResponse(ListePrix entity);
+
     ListePrix toEntity(ListePrixRequest dto);
+
     void updateFromDto(ListePrixRequest dto, @MappingTarget ListePrix entity);
 }

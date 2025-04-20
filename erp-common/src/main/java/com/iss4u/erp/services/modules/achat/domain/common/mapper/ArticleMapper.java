@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.common.dto.article.response.A
 @Mapper(componentModel = "spring")
 public interface ArticleMapper {
     ArticleResponse toResponse(Article entity);
+
     Article toEntity(ArticleRequest dto);
+
     void updateFromDto(ArticleRequest dto, @MappingTarget Article entity);
 }

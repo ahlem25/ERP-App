@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.common.models.RegleTarificati
 @Mapper(componentModel = "spring")
 public interface RegleTarificationMapper {
     RegleTarificationResponse toResponse(RegleTarification entity);
+
     RegleTarification toEntity(RegleTarificationRequest dto);
+
     void updateFromDto(RegleTarificationRequest dto, @MappingTarget RegleTarification entity);
 }

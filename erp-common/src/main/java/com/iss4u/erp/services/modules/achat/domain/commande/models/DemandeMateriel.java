@@ -1,6 +1,7 @@
 package com.iss4u.erp.services.modules.achat.domain.commande.models;
 
 import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
+import com.iss4u.erp.services.modules.stock.domain.models.Entrepot;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -16,6 +17,10 @@ public class DemandeMateriel {
     private Long id;
 
     private String commentaire;
+    private String type;
+
+    @ManyToOne
+    private Entrepot entrepotCible;
 
     @ManyToOne
     @JoinColumn(name = "article_id")

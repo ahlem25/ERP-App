@@ -9,6 +9,8 @@ import com.iss4u.erp.services.modules.achat.domain.commande.models.FactureAchat;
 @Mapper(componentModel = "spring")
 public interface FactureAchatMapper {
     FactureAchatResponse toResponse(FactureAchat entity);
+
     FactureAchat toEntity(FactureAchatRequest dto);
+
     void updateFromDto(FactureAchatRequest dto, @MappingTarget FactureAchat entity);
 }
