@@ -1,6 +1,7 @@
 package com.iss4u.erp.services.modules.vente.domain.models;
 
 import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
+import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
