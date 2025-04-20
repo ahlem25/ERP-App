@@ -1,6 +1,9 @@
-package com.iss4u.erp.services.modules.vente.domain.models;
+package com.iss4u.erp.services.modules.vente.domain.billing.models;
 
+import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
+import com.iss4u.erp.services.modules.stock.domain.models.Entrepot;
 import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,24 +16,27 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FactureVente {
+public class CommandeClient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String numero;
-    private Date dateEcheance;
-    private Float montantTtc;
+    private Date dateLivraison;
+    private String statut;
 
     @ManyToOne
     private Client client;
 
-    @ManyToOne
-    private Societe societe;
+    @ManyToMany
+    private List<Article> articles;
 
-    @OneToMany(mappedBy = "facture")
-    private List<Paiement> paiements;
+    @ManyToOne
+    private FactureVente facture;
+
+    @ManyToOne
+    private Entrepot entrepot;
 
     @ManyToMany
     private List<Taxe> taxes;

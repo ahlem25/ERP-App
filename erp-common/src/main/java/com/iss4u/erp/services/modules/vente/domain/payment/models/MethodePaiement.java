@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.modules.vente.domain.models;
+package com.iss4u.erp.services.modules.vente.domain.payment.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,13 +12,12 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Taxe {
+public class MethodePaiement {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nom;
-    private Float taux;
     private String type;
 }

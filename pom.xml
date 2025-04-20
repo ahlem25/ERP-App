@@ -44,6 +44,9 @@
         <module>erp-supplier-service</module>
         <module>erp-order-service</module>
         <module>erp-client-service</module>
+        <module>erp-payment-service</module>
+        <module>erp-billing-service</module>
+        <module>erp-sales-service</module>
         <module>erp-common</module>
         <module>utils-lib</module>
     </modules>
@@ -97,6 +100,21 @@
             <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-client-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iss4u.erp.services</groupId>
+                <artifactId>erp-payment-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iss4u.erp.services</groupId>
+                <artifactId>erp-billing-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iss4u.erp.services</groupId>
+                <artifactId>erp-sales-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ERP Libs -->

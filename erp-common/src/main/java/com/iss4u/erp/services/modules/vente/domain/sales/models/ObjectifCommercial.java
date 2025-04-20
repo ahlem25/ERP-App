@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.modules.vente.domain.models;
+package com.iss4u.erp.services.modules.vente.domain.sales.models;
 
 import com.iss4u.erp.services.modules.achat.domain.common.models.GroupeArticle;
 import jakarta.persistence.*;
