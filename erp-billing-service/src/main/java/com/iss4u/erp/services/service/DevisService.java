@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.billing.repository.DevisRepository;
 import com.iss4u.erp.services.modules.vente.domain.billing.mapper.DevisMapper;
-import com.iss4u.erp.services.models.Devis;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.Devis;
 import com.iss4u.erp.services.modules.vente.domain.billing.dto.devis.request.DevisRequest;
 import com.iss4u.erp.services.modules.vente.domain.billing.dto.devis.response.DevisResponse;
 import java.util.List;

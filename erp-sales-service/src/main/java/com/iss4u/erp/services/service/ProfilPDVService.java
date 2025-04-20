@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.sales.repository.ProfilPDVRepository;
 import com.iss4u.erp.services.modules.vente.domain.sales.mapper.ProfilPDVMapper;
-import com.iss4u.erp.services.models.ProfilPDV;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.ProfilPDV;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.profilpdv.request.ProfilPDVRequest;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.profilpdv.response.ProfilPDVResponse;
 import java.util.List;

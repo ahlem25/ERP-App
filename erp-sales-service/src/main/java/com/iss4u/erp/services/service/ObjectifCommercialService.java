@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.sales.repository.ObjectifCommercialRepository;
 import com.iss4u.erp.services.modules.vente.domain.sales.mapper.ObjectifCommercialMapper;
-import com.iss4u.erp.services.models.ObjectifCommercial;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.ObjectifCommercial;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.objectifcommercial.request.ObjectifCommercialRequest;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.objectifcommercial.response.ObjectifCommercialResponse;
 import java.util.List;

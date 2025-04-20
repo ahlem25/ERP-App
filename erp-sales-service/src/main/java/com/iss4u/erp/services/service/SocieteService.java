@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.sales.repository.SocieteRepository;
 import com.iss4u.erp.services.modules.vente.domain.sales.mapper.SocieteMapper;
-import com.iss4u.erp.services.models.Societe;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Societe;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.societe.request.SocieteRequest;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.societe.response.SocieteResponse;
 import java.util.List;

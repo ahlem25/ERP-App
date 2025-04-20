@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.billing.repository.CommandeClientRepository;
 import com.iss4u.erp.services.modules.vente.domain.billing.mapper.CommandeClientMapper;
-import com.iss4u.erp.services.models.CommandeClient;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
 import com.iss4u.erp.services.modules.vente.domain.billing.dto.commandeclient.request.CommandeClientRequest;
 import com.iss4u.erp.services.modules.vente.domain.billing.dto.commandeclient.response.CommandeClientResponse;
 import java.util.List;
