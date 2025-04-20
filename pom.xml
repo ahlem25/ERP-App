@@ -26,6 +26,7 @@
         <mockito.version>5.4.0</mockito.version>
         <test-containers.version>1.20.4</test-containers.version>
         <maven.surefire.plugin>3.0.0-M7</maven.surefire.plugin>
+        <start-class>com.iss4u.erp.ERPClientServiceApplication</start-class>
         <keycloak-admin.plugin>26.0.5</keycloak-admin.plugin>
         <start-class>com.iss4u.erp.Main</start-class>
     </properties>
@@ -42,6 +43,7 @@
         <module>erp-inventory-service</module>
         <module>erp-supplier-service</module>
         <module>erp-order-service</module>
+        <module>erp-client-service</module>
         <module>erp-common</module>
         <module>utils-lib</module>
     </modules>
@@ -90,6 +92,11 @@
             <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-order-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iss4u.erp.services</groupId>
+                <artifactId>erp-client-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ERP Libs -->
