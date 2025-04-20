@@ -1,32 +1,30 @@
-package com.iss4u.erp.services.models;
+package com.iss4u.erp.services.domain.achat.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FactureAchat {
+public class AppelOffre {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String serie;
-    private LocalDate dateDePaiement;
-    private Double totalTtc;
+    private String modeleEmail;
 
-    @ManyToOne
-    private Fournisseur fournisseur;
+    @ManyToMany
+    private List<Fournisseur> fournisseursContactes;
 
     @OneToMany(cascade = CascadeType.ALL)
-    private List<Item> articlesFactures;
+    private List<Item> articlesDemandes;
 }
 
 

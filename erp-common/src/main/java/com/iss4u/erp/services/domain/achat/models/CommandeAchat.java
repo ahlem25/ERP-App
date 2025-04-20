@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.models;
+package com.iss4u.erp.services.domain.achat.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,22 +11,23 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DevisFournisseur {
+public class CommandeAchat {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String serie;
-    private Double montantTotal;
+    private String conditionsDeLivraison;
 
     @ManyToOne
     private Fournisseur fournisseur;
 
     @OneToMany(cascade = CascadeType.ALL)
-    private List<Item> articles;
+    private List<Item> articlesCommandes;
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<TaxesFrais> taxes;
 }
+
 

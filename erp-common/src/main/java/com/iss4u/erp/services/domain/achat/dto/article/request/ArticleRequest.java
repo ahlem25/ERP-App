@@ -1,6 +1,5 @@
-package com.iss4u.erp.services.dto.article.response;
+package com.iss4u.erp.services.domain.achat.dto.article.request;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -8,8 +7,7 @@ import lombok.AllArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ArticleResponse {
-    private Long id;
+public class ArticleRequest {
     private String codeArticle;
     private String nomArticle;
     private Boolean stockable;

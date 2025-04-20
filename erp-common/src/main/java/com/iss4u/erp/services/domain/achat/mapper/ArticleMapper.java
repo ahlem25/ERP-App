@@ -1,10 +1,10 @@
-package com.iss4u.erp.services.mapper;
+package com.iss4u.erp.services.domain.achat.mapper;
 
-import com.iss4u.erp.services.models.Article;
+import com.iss4u.erp.services.domain.achat.models.Article;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
-import com.iss4u.erp.services.dto.article.request.ArticleRequest;
-import com.iss4u.erp.services.dto.article.response.ArticleResponse;
+import com.iss4u.erp.services.domain.achat.dto.article.request.ArticleRequest;
+import com.iss4u.erp.services.domain.achat.dto.article.response.ArticleResponse;
 
 @Mapper(componentModel = "spring")
 public interface ArticleMapper {

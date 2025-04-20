@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.models;
+package com.iss4u.erp.services.domain.achat.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -12,15 +12,15 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaxesFrais {
+public class RegleTarification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String typeDeTaxe;
-    private String compteComptable;
-    private Double taux;
-    private Double montant;
-}
+    private String type;
+    private Double conditionQuantite;
+    private Double valeur;
+    private Integer priorite;
 
+}

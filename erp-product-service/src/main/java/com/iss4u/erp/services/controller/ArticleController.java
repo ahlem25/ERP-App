@@ -2,8 +2,8 @@ package com.iss4u.erp.services.controller;
 
 import org.springframework.web.bind.annotation.*;
 import com.iss4u.erp.services.service.ArticleService;
-import com.iss4u.erp.services.dto.article.request.ArticleRequest;
-import com.iss4u.erp.services.dto.article.response.ArticleResponse;
+import com.iss4u.erp.services.domain.achat.dto.article.request.ArticleRequest;
+import com.iss4u.erp.services.domain.achat.dto.article.response.ArticleResponse;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
