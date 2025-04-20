@@ -1,24 +1,17 @@
-package com.iss4u.erp.services.modules.achat.domain.common.models;
+package com.iss4u.erp.services.modules.achat.domain.common.dto.listeprix.request;
 
 import com.iss4u.erp.services.modules.achat.domain.common.models.PrixArticle;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ListePrix {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+public class ListePrixRequest {
     private String nom;
     private String devise;
     private Boolean actif;
@@ -26,7 +19,7 @@ public class ListePrix {
     private LocalDate valideJusquau;
     private Boolean pourAchat;
     private Boolean pourVente;
-
-    @OneToMany(mappedBy = "listeDePrix")
     private List<PrixArticle> prixArticles;
+
+
 }

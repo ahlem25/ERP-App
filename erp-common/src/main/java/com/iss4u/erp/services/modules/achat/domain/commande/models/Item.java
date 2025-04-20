@@ -1,5 +1,6 @@
-package com.iss4u.erp.services.modules.achat.domain.common.models;
+package com.iss4u.erp.services.modules.achat.domain.commande.models;
 
+import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

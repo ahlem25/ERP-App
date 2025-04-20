@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.modules.achat.domain.common.models;
+package com.iss4u.erp.services.modules.achat.domain.commande.models;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
