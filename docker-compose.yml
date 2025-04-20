@@ -1,6 +1,19 @@
 version: '3.8'
 
 services:
+  # Keycloak with auto creation of realm
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak
+    command: start-dev --import-realm
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: passw0rd
+    volumes:
+      - ./.keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+  # MySQL Database
   mysql:
     image: mysql:8.0
     container_name: mysql_db

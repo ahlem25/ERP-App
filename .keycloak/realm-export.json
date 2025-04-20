@@ -1,0 +1,81 @@
+{
+  "id": "iss-4u-realm",
+  "realm": "iss-4u-realm",
+  "displayName": "ERP Realm for iss-4u",
+  "enabled": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "ADMIN",
+        "description": "Administrator"
+      },
+      {
+        "name": "SUPER-ADMIN",
+        "description": "Super Administrator"
+      },
+      {
+        "name": "USER",
+        "description": "User"
+      }
+    ],
+    "client": {
+      "erp-app-api-gateway": [
+        {
+          "name": "read",
+          "description": "Read-only access to API resources"
+        },
+        {
+          "name": "write",
+          "description": "Write access to API resources"
+        },
+        {
+          "name": "admin",
+          "description": "Full access to API resources (admin privileges)"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "erp-app-api-gateway",
+      "enabled": true,
+      "fullScopeAllowed": true,
+      "name": "ERP API Gateway",
+      "description": "Client used to secure the ERP API Gateway",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "rootUrl": "http://localhost:8014",
+      "baseUrl": "/",
+      "adminUrl": "http://localhost:8014",
+      "redirectUris": ["http://localhost:8014/*"],
+      "webOrigins": ["*"],
+      "attributes": {
+        "post.logout.redirect.uri": "+"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "ahlem.cherni112@gmail.com",
+      "email": "ahlem.cherni112@gmail.com",
+      "firstName": "Ahlem",
+      "lastName": "Cherni",
+      "enabled": true,
+      "emailVerified": true,
+      "createdTimestamp": 1713317520000,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "123456",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["SUPER-ADMIN","ADMIN", "USER"],
+      "clientRoles": {
+        "erp-app-api-gateway": ["read", "write", "admin"]
+      }
+    }
+  ]
+}

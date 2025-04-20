@@ -11,13 +11,9 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-
 @RequestMapping("/api/v1/articles")
 public class ArticleController {
-
     private final ArticleService service;
-
-    
 
     @GetMapping
     public List<ArticleResponse> findAll() {
