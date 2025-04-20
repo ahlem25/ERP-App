@@ -1,5 +1,6 @@
 package com.iss4u.erp.services.modules.achat.domain.common.models;
 
+import com.iss4u.erp.services.modules.achat.domain.commande.models.DemandeMateriel;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
