@@ -6,7 +6,7 @@ import com.iss4u.erp.services.modules.achat.domain.fournisseur.dto.fournisseur.r
 import com.iss4u.erp.services.modules.achat.domain.fournisseur.dto.fournisseur.response.FournisseurResponse;
 import com.iss4u.erp.services.modules.achat.domain.fournisseur.models.Fournisseur;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface FournisseurMapper {
     FournisseurResponse toResponse(Fournisseur entity);
     Fournisseur toEntity(FournisseurRequest dto);
