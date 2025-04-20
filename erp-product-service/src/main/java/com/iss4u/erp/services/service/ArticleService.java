@@ -1,11 +1,11 @@
 package com.iss4u.erp.services.service;
 
-import com.iss4u.erp.services.domain.achat.models.Article;
+import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
 import org.springframework.stereotype.Service;
-import com.iss4u.erp.services.domain.achat.repository.ArticleRepository;
-import com.iss4u.erp.services.domain.achat.mapper.ArticleMapper;
-import com.iss4u.erp.services.domain.achat.dto.article.request.ArticleRequest;
-import com.iss4u.erp.services.domain.achat.dto.article.response.ArticleResponse;
+import com.iss4u.erp.services.modules.achat.domain.common.repository.ArticleRepository;
+import com.iss4u.erp.services.modules.achat.domain.common.mapper.ArticleMapper;
+import com.iss4u.erp.services.modules.achat.domain.common.dto.article.request.ArticleRequest;
+import com.iss4u.erp.services.modules.achat.domain.common.dto.article.response.ArticleResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
