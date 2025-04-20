@@ -1,5 +1,6 @@
 package com.iss4u.erp.services.modules.stock.domain.models;
 
+import com.iss4u.erp.services.modules.vente.domain.models.Societe;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;

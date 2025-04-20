@@ -1,5 +1,7 @@
 package com.iss4u.erp.services.modules.stock.domain.models;
 
+import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
+import com.iss4u.erp.services.modules.achat.domain.fournisseur.models.Fournisseur;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
 import lombok.AllArgsConstructor;
@@ -13,7 +15,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ReceptionAchat {
-@ManyToOne private Fournisseur fournisseur;
+    @ManyToOne private Fournisseur fournisseur;
     @ManyToOne private Article articlesRecus;
     private Double quantitesAcceptees;
     private Double quantitesRejetees;
