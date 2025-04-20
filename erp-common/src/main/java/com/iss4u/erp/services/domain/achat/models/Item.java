@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.models;
+package com.iss4u.erp.services.domain.achat.models;
 
 
 import jakarta.persistence.*;

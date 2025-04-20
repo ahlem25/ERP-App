@@ -1,34 +1,29 @@
-package com.iss4u.erp.services.models;
-
+package com.iss4u.erp.services.domain.achat.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PrixArticle {
+public class Fournisseur {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Double prix;
-    private Double quantiteMinimale;
-    private String devise;
-    private String reference;
+    private String nomDuFournisseur;
+    private String pays = "Tunisie";
+    private String deviseDeFacturation;
+    private String typeDeFournisseur;
+    private Boolean estTransporteur;
 
     @ManyToOne
-    private Article article;
+    private GroupeFournisseurs groupeDeFournisseurs;
 
     @ManyToOne
     private ListePrix listeDePrix;
-
-    @ManyToOne
-    private Fournisseur fournisseur;
 }
-

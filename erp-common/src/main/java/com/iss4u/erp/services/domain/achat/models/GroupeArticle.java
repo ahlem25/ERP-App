@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.models;
+package com.iss4u.erp.services.domain.achat.models;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -12,19 +12,19 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class GroupeFournisseurs {
+public class GroupeArticle {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String nomDuGroupe;
-    private Boolean estUnGroupe;
-    private Double limiteDeCredit;
-
+    private Double tauxTvaParDefaut;
+    private String imageDuGroupe;
     @ManyToOne
-    private GroupeFournisseurs groupeParent;
+    private GroupeArticle groupeParent;
 
-    @OneToMany(mappedBy = "groupeDeFournisseurs")
-    private List<Fournisseur> fournisseurs;
+    @OneToMany(mappedBy = "groupeArticle")
+    private List<Article> articles;
 }
+
