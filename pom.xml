@@ -38,11 +38,9 @@
         <module>erp-config</module>
         <module>erp-user-service</module>
         <module>erp-product-service</module>
-        <module>erp-category-service</module>
         <module>erp-inventory-service</module>
         <module>erp-supplier-service</module>
         <module>erp-order-service</module>
-<!--        <module>erp-ihm-service</module>-->
         <module>erp-common</module>
         <module>utils-lib</module>
     </modules>
@@ -70,22 +68,12 @@
             <!--ERP Services -->
             <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
-                <artifactId>ihm-service</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-user-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-product-service</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.iss4u.erp.services</groupId>
-                <artifactId>erp-category-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
