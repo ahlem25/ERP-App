@@ -1,0 +1,22 @@
+package com.iss4u.erp.services.modules.vente.domain.sales.dto.vendeur.request;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import com.iss4u.erp.services.models.Societe;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class VendeurRequest {
+    private String nom;
+    private Float commission;
+    private String equipeParente;
+    private Societe societe;
+    private List<ObjectifCommercial> objectifs;
+    private List<Client> clients;
+
+
+}
