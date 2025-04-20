@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.iss4u.erp.services.modules.stock.domain.models.Entrepot;
-import com.iss4u.erp.services.modules.vente.domain.models.Societe;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Societe;
 
 @Data
 @NoArgsConstructor

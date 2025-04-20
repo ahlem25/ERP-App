@@ -5,7 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
 import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
-import com.iss4u.erp.services.modules.vente.domain.models.Taxe;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 
 @Data
 @NoArgsConstructor

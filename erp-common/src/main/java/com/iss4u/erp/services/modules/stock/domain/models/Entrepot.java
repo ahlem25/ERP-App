@@ -1,6 +1,6 @@
 package com.iss4u.erp.services.modules.stock.domain.models;
 
-import com.iss4u.erp.services.modules.vente.domain.models.Societe;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Societe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

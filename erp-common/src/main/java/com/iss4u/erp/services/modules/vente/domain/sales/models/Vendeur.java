@@ -1,6 +1,8 @@
-package com.iss4u.erp.services.modules.vente.domain.models;
+package com.iss4u.erp.services.modules.vente.domain.sales.models;
 
 import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.ObjectifCommercial;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Societe;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Vendeur {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

@@ -1,5 +1,6 @@
-package com.iss4u.erp.services.modules.vente.domain.models;
+package com.iss4u.erp.services.modules.vente.domain.payment.models;
 
+import com.iss4u.erp.services.modules.vente.domain.billing.models.FactureVente;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

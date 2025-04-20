@@ -1,8 +1,8 @@
 package com.iss4u.erp.services.modules.vente.domain.client.dto.client.response;
 
-import com.iss4u.erp.services.modules.vente.domain.models.CommandeClient;
-import com.iss4u.erp.services.modules.vente.domain.models.Devis;
-import com.iss4u.erp.services.modules.vente.domain.models.FactureVente;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.Devis;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.FactureVente;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -10,7 +10,7 @@ import com.iss4u.erp.services.modules.vente.domain.client.models.GroupeClient;
 
 import java.util.List;
 
-import com.iss4u.erp.services.modules.vente.domain.models.Vendeur;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Vendeur;
 
 @Data
 @NoArgsConstructor
