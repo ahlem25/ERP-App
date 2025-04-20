@@ -1,5 +1,6 @@
 package com.iss4u.erp.services.modules.vente.domain.billing.dto.devis.request;
 
+import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;

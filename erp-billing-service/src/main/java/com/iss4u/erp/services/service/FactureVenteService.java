@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.billing.repository.FactureVenteRepository;
 import com.iss4u.erp.services.modules.vente.domain.billing.mapper.FactureVenteMapper;
-import com.iss4u.erp.services.models.FactureVente;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.FactureVente;
 import com.iss4u.erp.services.modules.vente.domain.billing.dto.facturevente.request.FactureVenteRequest;
 import com.iss4u.erp.services.modules.vente.domain.billing.dto.facturevente.response.FactureVenteResponse;
 import java.util.List;

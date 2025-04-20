@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.sales.repository.TaxeRepository;
 import com.iss4u.erp.services.modules.vente.domain.sales.mapper.TaxeMapper;
-import com.iss4u.erp.services.models.Taxe;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.taxe.request.TaxeRequest;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.taxe.response.TaxeResponse;
 import java.util.List;

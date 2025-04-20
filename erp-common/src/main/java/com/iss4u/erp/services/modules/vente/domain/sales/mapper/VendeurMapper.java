@@ -4,7 +4,7 @@ import com.iss4u.erp.services.modules.vente.domain.sales.dto.vendeur.request.Ven
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.vendeur.response.VendeurResponse;
-import com.iss4u.erp.services.models.Vendeur;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Vendeur;
 
 @Mapper(componentModel = "spring")
 public interface VendeurMapper {

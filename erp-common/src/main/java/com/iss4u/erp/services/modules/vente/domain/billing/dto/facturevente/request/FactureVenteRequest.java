@@ -1,5 +1,7 @@
 package com.iss4u.erp.services.modules.vente.domain.billing.dto.facturevente.request;
 
+import com.iss4u.erp.services.modules.vente.domain.payment.models.Paiement;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;

@@ -1,5 +1,7 @@
 package com.iss4u.erp.services.modules.vente.domain.billing.dto.commandeclient.request;
 
+import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -10,7 +12,7 @@ import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
 
 import java.util.List;
 
-import com.iss4u.erp.services.models.FactureVente;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.FactureVente;
 import com.iss4u.erp.services.modules.stock.domain.models.Entrepot;
 
 @Data

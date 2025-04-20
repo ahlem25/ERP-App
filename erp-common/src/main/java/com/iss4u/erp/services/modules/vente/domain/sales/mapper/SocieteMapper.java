@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.societe.request.SocieteRequest;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.societe.response.SocieteResponse;
-import com.iss4u.erp.services.models.Societe;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Societe;
 
 @Mapper(componentModel = "spring")
 public interface SocieteMapper {

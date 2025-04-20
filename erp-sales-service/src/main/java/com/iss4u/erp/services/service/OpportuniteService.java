@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.sales.repository.OpportuniteRepository;
 import com.iss4u.erp.services.modules.vente.domain.sales.mapper.OpportuniteMapper;
-import com.iss4u.erp.services.models.Opportunite;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Opportunite;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.opportunite.request.OpportuniteRequest;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.opportunite.response.OpportuniteResponse;
 import java.util.List;

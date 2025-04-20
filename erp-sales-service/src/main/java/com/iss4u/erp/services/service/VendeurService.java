@@ -3,7 +3,7 @@ package com.iss4u.erp.services.service;
 import org.springframework.stereotype.Service;
 import com.iss4u.erp.services.modules.vente.domain.sales.repository.VendeurRepository;
 import com.iss4u.erp.services.modules.vente.domain.sales.mapper.VendeurMapper;
-import com.iss4u.erp.services.models.Vendeur;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Vendeur;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.vendeur.request.VendeurRequest;
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.vendeur.response.VendeurResponse;
 import java.util.List;

@@ -1,5 +1,9 @@
 package com.iss4u.erp.services.modules.vente.domain.sales.dto.societe.request;
 
+import com.iss4u.erp.services.modules.vente.domain.billing.models.FactureVente;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Opportunite;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.ProfilPDV;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Vendeur;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;

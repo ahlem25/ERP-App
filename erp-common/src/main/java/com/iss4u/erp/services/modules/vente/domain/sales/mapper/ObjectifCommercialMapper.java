@@ -4,7 +4,7 @@ import com.iss4u.erp.services.modules.vente.domain.sales.dto.objectifcommercial.
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.objectifcommercial.response.ObjectifCommercialResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
-import com.iss4u.erp.services.models.ObjectifCommercial;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.ObjectifCommercial;
 
 @Mapper(componentModel = "spring")
 public interface ObjectifCommercialMapper {

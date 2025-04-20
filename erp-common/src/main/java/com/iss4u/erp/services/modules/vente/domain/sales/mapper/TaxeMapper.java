@@ -4,7 +4,7 @@ import com.iss4u.erp.services.modules.vente.domain.sales.dto.taxe.request.TaxeRe
 import com.iss4u.erp.services.modules.vente.domain.sales.dto.taxe.response.TaxeResponse;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
-import com.iss4u.erp.services.models.Taxe;
+import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 
 @Mapper(componentModel = "spring")
 public interface TaxeMapper {
