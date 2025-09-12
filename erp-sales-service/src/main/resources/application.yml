@@ -1,0 +1,10 @@
+spring:
+  config:
+    import: "configserver:http://localhost:8012"
+  application:
+    name: erp-sales-service
+  profiles:
+    active: dev
+  cloud:
+    config:
+      profile: ${spring.profiles.active}

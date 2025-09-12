@@ -1,0 +1,36 @@
+spring:
+  config:
+    import: "configserver:http://localhost:8012"
+  application:
+    name: erp-api-gateway-service
+  profiles:
+    active: dev
+  cloud:
+    config:
+      profile: ${spring.profiles.active}
+    gateway:
+      default-filters:
+        - AddRequestHeader=X-Requested-With, XMLHttpRequest
+        - AddResponseHeader=Content-Type, application/json;charset=UTF-8
+        - AddResponseHeader=Accept, application/json;charset=UTF-8
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            exposedHeaders: "Content-Type,Authorization,Accept"
+            allowCredentials: false
+      routes:
+        - id: default_path
+          uri: lb://erp-service
+          predicates:
+            - Path=/**
+          filters:
+            - AddRequestHeader=Content-Type, application/json;charset=UTF-8
+            - AddResponseHeader=Content-Type, application/json;charset=UTF-8
+            - AddRequestHeader=Accept, application/json;charset=UTF-8
+            - AddResponseHeader=Accept, application/json;charset=UTF-8
+            - StripPrefix=0
+            - PreserveHostHeader
+
