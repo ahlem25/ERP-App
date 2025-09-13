@@ -17,19 +17,17 @@ import java.util.List;
 public class UtilisateurResponse {
     private Long id;
     private String email;
-    private String nomUtilisateur;
     private String prenom;
-    private String secondNom;
     private String nomFamille;
-    private String langue;
-    private String fuseauHoraire;
     private Boolean actif;
-    private Boolean envoyerEmailBienvenue;
     private Date derniereMaj;
     private List<Role> roles;
     private List<Autorisation> autorisations;
     private List<Document> documents;
     private List<Commentaire> commentaires;
 
-
+    // Méthode utilitaire pour obtenir le nom complet
+    public String getNomComplet() {
+        return prenom + " " + nomFamille;
+    }
 }

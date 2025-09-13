@@ -1,7 +1,4 @@
 package com.iss4u.erp.services.modules.core.domain.models;
-import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -12,6 +9,7 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
+@Table(name = "utilisateurs")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -19,25 +17,37 @@ public class Utilisateur {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(unique = true, nullable = false)
     private String email;
-    private String nomUtilisateur;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Column(nullable = false)
     private String prenom;
-    private String secondNom;
+
+    @Column(nullable = false)
     private String nomFamille;
-    private String langue;
-    private String fuseauHoraire;
-    private Boolean actif;
-    private Boolean envoyerEmailBienvenue;
+
+    private Boolean actif = true;
+
     private Date derniereMaj;
+
     @OneToMany
     private List<Role> roles;
+
     @OneToMany
     private List<Autorisation> autorisations;
+
     @OneToMany
     private List<Document> documents;
+
     @OneToMany
     private List<Commentaire> commentaires;
 
-
-
+    // Méthode utilitaire
+    public String getNomComplet() {
+        return prenom + " " + nomFamille;
+    }
 }
