@@ -47,6 +47,8 @@
         <module>erp-payment-service</module>
         <module>erp-billing-service</module>
         <module>erp-sales-service</module>
+        <module>erp-dashboard-service</module>
+        <module>erp-scheduler-service</module>
         <module>erp-common</module>
         <module>utils-lib</module>
     </modules>
@@ -115,6 +117,16 @@
             <dependency>
                 <groupId>com.iss4u.erp.services</groupId>
                 <artifactId>erp-sales-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iss4u.erp.services</groupId>
+                <artifactId>erp-dashboard-service</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.iss4u.erp.services</groupId>
+                <artifactId>erp-scheduler-service</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ERP Libs -->
