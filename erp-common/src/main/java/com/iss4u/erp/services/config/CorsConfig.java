@@ -1,4 +1,4 @@
-package com.iss4u.erp.services.config;
+/*package com.iss4u.erp.services.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -16,4 +16,4 @@ public class CorsConfig implements WebMvcConfigurer {
                 .exposedHeaders("Content-Type", "Authorization", "Accept")
                 .allowCredentials(true);
     }
-}
+}*/
