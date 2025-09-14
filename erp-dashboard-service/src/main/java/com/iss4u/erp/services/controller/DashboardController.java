@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/dashboard")
+@RequestMapping("/api/v1/dashboard")
 @RequiredArgsConstructor
 public class DashboardController {
 
@@ -20,11 +20,5 @@ public class DashboardController {
     public ResponseEntity<Map<String, Object>> getDashboardStats() {
         Map<String, Object> stats = dashboardService.getDashboardStats();
         return ResponseEntity.ok(stats);
-    }
-
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, String>> getHealthStatus() {
-        Map<String, String> health = dashboardService.getHealthStatus();
-        return ResponseEntity.ok(health);
     }
 }
