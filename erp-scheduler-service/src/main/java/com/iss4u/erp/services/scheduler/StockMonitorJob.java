@@ -33,7 +33,16 @@ public class StockMonitorJob {
             for (Article article : lowStockProducts) {
                 log.warn("Low stock detected for product: {} (Quantity: {}, Threshold: {})",
                         article.getNomArticle(), stockMonitorService.getQuantity(article), STOCK_THRESHOLD);
-                stockMonitorService.createPurchaseOrder(article);
+                
+                // Check if a purchase order already exists for this article
+                if (stockMonitorService.hasPendingPurchaseOrder(article)) {
+                    log.info("Purchase order already exists for product: {} - Skipping creation", 
+                            article.getNomArticle());
+                } else {
+                    log.info("No existing purchase order found for product: {} - Creating new order", 
+                            article.getNomArticle());
+                    stockMonitorService.createPurchaseOrder(article);
+                }
             }
         }
         log.info("============ Stock monitoring job finished =============");

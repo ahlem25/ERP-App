@@ -60,27 +60,27 @@ public class StockMonitorService {
         log.info("====== Start Purchase process for article: {} =========", article.getNomArticle());
         
         try {
-            // 1. Trouver un fournisseur par défaut ou le premier disponible
+            // 1. Find a default supplier or the first available one
             Fournisseur fournisseur = findDefaultSupplier(article);
             if (fournisseur == null) {
-                log.error("Aucun fournisseur trouvé pour l'article: {}", article.getNomArticle());
+                log.error("No supplier found for article: {}", article.getNomArticle());
                 return;
             }
             
-            // 2. Créer l'item de commande
+            // 2. Create the order item
             Item item = createOrderItem(article);
             
-            // 3. Créer la commande d'achat
+            // 3. Create the purchase order
             CommandeAchat commandeAchat = createCommandeAchat(fournisseur, item);
             
-            // 4. Sauvegarder la commande
+            // 4. Save the order
             CommandeAchat savedCommande = commandeAchatRepository.save(commandeAchat);
             
-            log.info("Commande d'achat créée avec succès - ID: {}, Série: {}, Fournisseur: {}", 
+            log.info("Purchase order created successfully - ID: {}, Series: {}, Supplier: {}", 
                     savedCommande.getId(), savedCommande.getSerie(), fournisseur.getNomFournisseur());
             
         } catch (Exception e) {
-            log.error("Erreur lors de la création de la commande d'achat pour l'article: {}", 
+            log.error("Error creating purchase order for article: {}", 
                      article.getNomArticle(), e);
         }
         
@@ -88,15 +88,15 @@ public class StockMonitorService {
     }
     
     private Fournisseur findDefaultSupplier(Article article) {
-        // Chercher un fournisseur par défaut ou le premier disponible
+        // Find a default supplier or the first available one
         List<Fournisseur> fournisseurs = fournisseurRepository.findAll();
         if (fournisseurs.isEmpty()) {
-            log.warn("Aucun fournisseur trouvé dans la base de données");
+            log.warn("No suppliers found in database");
             return null;
         }
         
-        // Pour l'instant, retourner le premier fournisseur disponible
-        // TODO: Implémenter une logique plus sophistiquée pour choisir le bon fournisseur
+        // For now, return the first available supplier
+        // TODO: Implement more sophisticated logic to choose the right supplier
         return fournisseurs.get(0);
     }
     
@@ -105,20 +105,20 @@ public class StockMonitorService {
         item.setArticle(article);
         item.setQuantite((double) ORDER_QUANTITY);
         item.setPrixUnitaire(article.getPrixVente()); // to verify
-        item.setCommentaire("Commande automatique - Stock faible détecté");
+        item.setCommentaire("Automatic order - Low stock detected");
         return item;
     }
     
     private CommandeAchat createCommandeAchat(Fournisseur fournisseur, Item item) {
         CommandeAchat commandeAchat = new CommandeAchat();
         
-        // Générer un numéro de série unique
+        // Generate a unique series number
         String serie = generateSerieNumber();
         commandeAchat.setSerie(serie);
         commandeAchat.setConditionsDeLivraison(DEFAULT_CONDITIONS);
         commandeAchat.setFournisseur(fournisseur);
         
-        // Ajouter l'item à la commande
+        // Add the item to the order
         List<Item> items = new ArrayList<>();
         items.add(item);
         commandeAchat.setArticlesCommandes(items);
@@ -127,9 +127,57 @@ public class StockMonitorService {
     }
     
     private String generateSerieNumber() {
-        // Générer un numéro de série basé sur la date et un compteur
+        // Generate a series number based on date and counter
         String datePrefix = LocalDate.now().toString().replace("-", "");
         long count = commandeAchatRepository.count() + 1;
         return DEFAULT_SERIE + "-" + datePrefix + "-" + String.format("%04d", count);
+    }
+    
+    /**
+     * Checks if a purchase order already exists for a given article
+     * @param article The article to check
+     * @return true if an order already exists, false otherwise
+     */
+    public boolean hasExistingPurchaseOrder(Article article) {
+        try {
+            // Use a native query to avoid LazyInitializationException
+            Long count = commandeAchatRepository.countByArticleIdAndComment(article.getId(), "Automatic order");
+            
+            if (count > 0) {
+                log.info("Existing purchase order found for article: {} (Count: {})", 
+                        article.getNomArticle(), count);
+                return true;
+            }
+            
+            return false;
+        } catch (Exception e) {
+            log.error("Error checking existing orders for article: {}", 
+                     article.getNomArticle(), e);
+            return false; // In case of error, consider there is no existing order
+        }
+    }
+    
+    /**
+     * Checks if a pending purchase order exists for an article
+     * @param article The article to check
+     * @return true if a pending order exists, false otherwise
+     */
+    public boolean hasPendingPurchaseOrder(Article article) {
+        try {
+            // Use a native query to avoid LazyInitializationException
+            Long count = commandeAchatRepository.countByArticleIdAndComment(article.getId(), "Automatic order");
+            
+            if (count > 0) {
+                log.info("Pending purchase order found for article: {} (Count: {})", 
+                        article.getNomArticle(), count);
+                return true;
+            }
+            
+            return false;
+        } catch (Exception e) {
+            log.error("Error checking pending orders for article: {}", 
+                     article.getNomArticle(), e);
+            return false;
+        }
     }
 }
