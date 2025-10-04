@@ -8,3 +8,17 @@ spring:
   cloud:
     config:
       profile: ${spring.profiles.active}
+
+# Configuration Keycloak
+keycloak:
+  server-url: http://localhost:8080
+  realm: erp-realm
+  client-id: admin-cli
+  username: ahlem.cherni
+  password: ahlem1234
+
+# Configuration des logs
+logging:
+  level:
+    com.iss4u.erp.services: DEBUG
+    org.keycloak: INFO
