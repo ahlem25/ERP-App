@@ -17,7 +17,7 @@
     <description>Product Service for ERP App</description>
 
     <properties>
-        <start-class>com.iss4u.erp.services.ERPOrderServiceApplication</start-class>
+        <start-class>com.iss4u.erp.services.ERPProductServiceApplication</start-class>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

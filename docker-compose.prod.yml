@@ -1,0 +1,549 @@
+version: '3.8'
+
+services:
+  # Keycloak with auto creation of realm
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.3
+    container_name: keycloak-prod
+    command: start-dev --import-realm
+    ports:
+      - "8092:8080"
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: passw0rd
+    volumes:
+      - ./.keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    networks:
+      - spring_network
+    restart: ${RESTART_POLICY:-unless-stopped}
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db_prod
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: achat_db
+      MYSQL_USER: ahlem
+      MYSQL_PASSWORD: achat
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data_prod:/var/lib/mysql
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - spring_network
+    restart: ${RESTART_POLICY:-unless-stopped}
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Service Discovery
+  erp-service-discovery:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-service-discovery/target/erp-service-discovery-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-service-discovery:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-service-discovery-prod
+    ports:
+      - "8013:8013"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8013/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Config Service
+  erp-config:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-config/target/erp-config-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-config:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-config-prod
+    ports:
+      - "8012:8012"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx512m -Xms256m"
+      # Désactiver la configuration Git pour éviter les problèmes de permissions
+      SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: master
+    networks:
+      - spring_network
+    depends_on:
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8012/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # API Gateway
+  erp-api-gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-api-gateway/target/erp-api-gateway-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-api-gateway:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-api-gateway-prod
+    ports:
+      - "8014:8014"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8014/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # User Service
+  erp-user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-user-service/target/erp-user-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-user-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-user-service-prod
+    ports:
+      - "8055:8055"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+      # Configuration Keycloak
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-http://keycloak:8080}
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM:-erp-realm}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-erp-client}
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET:-your-client-secret}
+      KEYCLOAK_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USERNAME:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-passw0rd}
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+      - keycloak
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8055/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Product Service
+  erp-product-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-product-service/target/erp-product-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-product-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-product-service-prod
+    ports:
+      - "8051:8051"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8051/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Inventory Service
+  erp-inventory-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-inventory-service/target/erp-inventory-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-inventory-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-inventory-service-prod
+    ports:
+      - "8059:8059"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8059/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Supplier Service
+  erp-supplier-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-supplier-service/target/erp-supplier-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-supplier-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-supplier-service-prod
+    ports:
+      - "8052:8052"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8052/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Order Service
+  erp-order-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-order-service/target/erp-order-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-order-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-order-service-prod
+    ports:
+      - "8053:8053"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8053/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Client Service
+  erp-client-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-client-service/target/erp-client-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-client-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-client-service-prod
+    ports:
+      - "8058:8058"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8058/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Payment Service
+  erp-payment-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-payment-service/target/erp-payment-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-payment-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-payment-service-prod
+    ports:
+      - "8069:8069"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Client Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Spring Cloud Config URL
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Billing Service
+  erp-billing-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-billing-service/target/erp-billing-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-billing-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-billing-service-prod
+    ports:
+      - "8057:8057"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # Spring Cloud Config
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8057/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Sales Service
+  erp-sales-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-sales-service/target/erp-sales-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-sales-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-sales-service-prod
+    ports:
+      - "8060:8060"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # Spring Cloud Config
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8060/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Dashboard Service
+  erp-dashboard-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-dashboard-service/target/erp-dashboard-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-dashboard-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-dashboard-service-prod
+    ports:
+      - "8065:8065"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # Spring Cloud Config
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8065/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Scheduler Service
+  erp-scheduler-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        JAR_FILE: erp-scheduler-service/target/erp-scheduler-service-${VERSION:-1.0.0-SNAPSHOT}.jar
+    image: erp-scheduler-service:${VERSION:-1.0.0-SNAPSHOT}
+    container_name: erp-scheduler-service-prod
+    ports:
+      - "8066:8066"
+    environment:
+      # Spring Profile Configuration
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+      # Eureka Configuration
+      EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
+      # Database Configuration
+      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_USERNAME: ${DB_USERNAME:-ahlem}
+      DB_PASSWORD: ${DB_PASSWORD:-achat}
+      # Spring Cloud Config
+      SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
+      # JVM Configuration
+      JAVA_OPTS: "-Xmx1024m -Xms512m"
+    networks:
+      - spring_network
+    depends_on:
+      - erp-service-discovery
+      - erp-config
+      - mysql
+    restart: ${RESTART_POLICY:-unless-stopped}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8066/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  spring_network:
+    driver: bridge
+
+volumes:
+  mysql_data_prod:
