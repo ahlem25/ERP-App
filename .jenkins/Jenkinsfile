@@ -79,7 +79,7 @@ pipeline {
             }
             steps {
                 echo 'Running unit tests...'
-                sh "mvn clean test"
+                sh "mvn clean test -Dtest=**/*UT.java"
             }
             post {
                 always {
@@ -107,16 +107,16 @@ pipeline {
             }
             steps {
                 echo 'Running integration tests...'
-                sh "mvn clean verify -DskipTests" // Runs only integration tests
+                sh "mvn -DskipUTs -DfailIfNoTests=false -Dgroups=IT verify -Dincludes=**/*IT.java -Dfailsafe.includes=**/*IT.java"
             }
             post {
                 always {
                     script {
                         try {
                             // Collects integration test reports
-                            junit '**/target/surefire-reports/*.xml'
+                            junit '**/target/failsafe-reports/*.xml'
                             // Generate and archive the integration test report in HTML
-                            sh 'mvn failsafe-report:report'
+                            sh 'mvn failsafe:report'
                             archiveArtifacts artifacts: 'target/site/*.html', fingerprint: true
                         } catch (Exception e) {
                             echo "No test reports found. Skipping test results publishing."
