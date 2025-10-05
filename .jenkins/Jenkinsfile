@@ -201,6 +201,9 @@ pipeline {
             }
             steps {
                 script {
+                    // Ensure kubeconfig is set for the target cluster
+                    echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
+                    updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
                     echo "🔍 Checking if namespace ${env.EKS_NAMESPACE} exists..."
                     def namespaceExists = sh(
                         script: "kubectl get namespace ${env.EKS_NAMESPACE} 2>/dev/null",
@@ -225,9 +228,6 @@ pipeline {
             steps {
                 script {
                     try {
-                        // Ensure kubeconfig is set for the target cluster
-                        echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
-                        updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
                         echo "🔄 Start deploying ERP services to EKS."
                         println ecrServices
                         // Deploy foundational services: MySQL and Keycloak
