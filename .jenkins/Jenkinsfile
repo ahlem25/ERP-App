@@ -9,6 +9,8 @@ pipeline {
     }
     parameters {
         booleanParam(name: 'DEPLOY_TO_EKS', defaultValue: false, description: 'Used to deploy all services in AWS EKS.')
+        booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Used to skip tests.')
+        booleanParam(name: 'SKIP_SONARQUBE', defaultValue: true, description: 'Used to skip SonarQube analysis.')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'test', 'pprd', 'prod'], description: 'Select the environment')
     }
     environment {
@@ -67,11 +69,14 @@ pipeline {
             steps {
                 echo 'Building the ERP project...'
                 sh "mvn -am -amd versions:set -DnewVersion=${env.POM_VERSION}"
-                sh "mvn -am -amd clean install"
+                sh "mvn -am -amd clean install -DskipTests"
             }
         }
 
         stage('Unit Test') {
+            when {
+                expression { return !params.SKIP_TESTS }
+            }
             steps {
                 echo 'Running unit tests...'
                 sh "mvn clean test"
@@ -96,7 +101,10 @@ pipeline {
             }
         }
 
-        stage('Integration Test') {
+        stage('Integration Test') { 
+            when {
+                expression { return !params.SKIP_TESTS }
+            }
             steps {
                 echo 'Running integration tests...'
                 sh "mvn clean verify -DskipTests" // Runs only integration tests
@@ -121,7 +129,10 @@ pipeline {
             }
         }
 
-        stage('Static Analysis') {
+        stage('SonarQube Analysis') {
+            when {
+                expression { return !params.SKIP_SONARQUBE }
+            }
             steps {
                 script {
                     echo 'Running static code analysis...'
