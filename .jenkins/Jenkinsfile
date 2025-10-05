@@ -225,6 +225,8 @@ pipeline {
             steps {
                 script {
                     try {
+                        // Ensure kubeconfig is set for the target cluster
+                        updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
                         echo "🔄 Start deploying ERP services to EKS."
                         println ecrServices
                         // Deploy foundational services: MySQL and Keycloak
@@ -324,6 +326,18 @@ def deleteImageWithSameTagBeforePushDocker(String awsRegion, String ecrRepoURL, 
 
     } catch (Exception e) {
         error "❌ Error: ${e.message}"
+    }
+}
+
+def updateKubeconfig(String awsRegion, String clusterName) {
+    try {
+        echo "🔐 Updating kubeconfig for EKS cluster '${clusterName}' in region '${awsRegion}'..."
+        sh """
+            aws eks update-kubeconfig --region ${awsRegion} --name ${clusterName}
+        """
+        echo "✅ Kubeconfig updated."
+    } catch (Exception e) {
+        error "❌ Failed to update kubeconfig: ${e.message}"
     }
 }
 
