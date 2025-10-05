@@ -17,7 +17,7 @@ pipeline {
         ECR_PRIVATE_REGISTRY_URL = "590184116223.dkr.ecr.eu-west-3.amazonaws.com"
         AWS_DEFAULT_REGION = "eu-west-3"
         CREDENTIALS_ID = "aws-credentials"
-        EKS_CLUSTER = "erp-app-prod-cluster"
+        EKS_CLUSTER = "erp-app-cluster"
         EKS_NAMESPACE = "erp-${params.ENVIRONMENT}"
     }
     options {
@@ -137,12 +137,10 @@ pipeline {
                 script {
                     echo 'Running static code analysis...'
                     try{
-                        /*
-                        sh "mvn clean verify sonar:sonar \
-                      -Dsonar.projectKey=erp-app \
-                      -Dsonar.host.url=http://your-sonarqube-url:9000 \
-                      -Dsonar.login=your-sonar-token"
-                      */
+						sh "mvn clean verify sonar:sonar \
+                      -Dsonar.projectKey=erp-backend \
+                      -Dsonar.host.url=http://13.38.181.68:9000 \
+                      -Dsonar.login=06349f961e402982d41a1409dd533a32192ab729"
                     }catch (Exception e) {
                         echo "SonarQube scan impossible."
                     }
