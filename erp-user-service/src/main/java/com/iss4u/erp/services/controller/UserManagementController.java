@@ -14,7 +14,6 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/users")
-@CrossOrigin(origins = "*")
 @Slf4j
 public class UserManagementController {
     
