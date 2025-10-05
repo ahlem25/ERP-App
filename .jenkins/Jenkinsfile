@@ -226,6 +226,7 @@ pipeline {
                 script {
                     try {
                         // Ensure kubeconfig is set for the target cluster
+                        echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
                         updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
                         echo "🔄 Start deploying ERP services to EKS."
                         println ecrServices
@@ -331,7 +332,7 @@ def deleteImageWithSameTagBeforePushDocker(String awsRegion, String ecrRepoURL, 
 
 def updateKubeconfig(String awsRegion, String clusterName) {
     try {
-        echo "🔐 Updating kubeconfig for EKS cluster '${clusterName}' in region '${awsRegion}'..."
+        echo "Starting to update kubeconfig..."
         sh """
             aws eks update-kubeconfig --region ${awsRegion} --name ${clusterName}
         """
