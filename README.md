@@ -406,6 +406,141 @@ Tous les services utilisent la politique `unless-stopped` :
 restart: unless-stopped
 ```
 
+## 🔄 Politique de Redémarrage Docker (RESTART_POLICY)
+
+La politique de redémarrage des conteneurs Docker est configurable via la variable d'environnement `RESTART_POLICY` dans `docker-compose.env`.
+
+### Valeurs possibles
+
+| Valeur | Description | Comportement |
+|--------|-------------|--------------|
+| `no` | **Par défaut** | Ne redémarre jamais le conteneur automatiquement |
+| `always` | **Toujours** | Redémarre le conteneur s'il s'arrête, même s'il a été arrêté manuellement |
+| `unless-stopped` | **Sauf si arrêté** | Redémarre le conteneur s'il s'arrête, sauf s'il a été arrêté explicitement |
+| `on-failure` | **En cas d'échec** | Redémarre le conteneur seulement s'il s'arrête avec un code de sortie non-zéro |
+
+### Configuration
+
+#### Dans docker-compose.env
+```bash
+# Politique de redémarrage des conteneurs
+RESTART_POLICY=unless-stopped
+```
+
+#### Dans docker-compose.prod.yml
+```yaml
+services:
+  erp-user-service:
+    # ... autres configurations
+    restart: ${RESTART_POLICY:-unless-stopped}
+```
+
+### Utilisation recommandée
+
+#### 🏠 Développement
+```bash
+# Dans docker-compose.env pour le développement
+RESTART_POLICY=no
+```
+- **Avantage** : Les conteneurs ne redémarrent pas automatiquement
+- **Usage** : Idéal pour le développement et les tests
+
+#### 🏭 Production
+```bash
+# Dans docker-compose.env pour la production
+RESTART_POLICY=unless-stopped
+```
+- **Avantage** : Redémarre automatiquement en cas de crash
+- **Usage** : Idéal pour la production et la haute disponibilité
+
+#### 🔧 Maintenance
+```bash
+# Pour les services critiques
+RESTART_POLICY=always
+```
+- **Avantage** : Redémarre même après un arrêt manuel
+- **Usage** : Services critiques nécessitant une disponibilité maximale
+
+#### 🐛 Debug
+```bash
+# Pour le debugging
+RESTART_POLICY=on-failure
+```
+- **Avantage** : Redémarre seulement en cas d'erreur
+- **Usage** : Idéal pour identifier les problèmes de démarrage
+
+### Exemples d'utilisation
+
+#### Changer la politique pour tous les services
+```bash
+# Modifier docker-compose.env
+echo "RESTART_POLICY=always" >> docker-compose.env
+
+# Redémarrer les services
+docker-compose -f docker-compose.prod.yml --env-file docker-compose.env up -d
+```
+
+#### Vérifier la politique actuelle
+```bash
+# Voir la configuration des conteneurs
+docker-compose -f docker-compose.prod.yml --env-file docker-compose.env config
+
+# Voir le statut des conteneurs
+docker-compose -f docker-compose.prod.yml --env-file docker-compose.env ps
+```
+
+#### Tester une politique différente
+```bash
+# Tester avec une politique temporaire
+RESTART_POLICY=no docker-compose -f docker-compose.prod.yml --env-file docker-compose.env up -d
+
+# Vérifier que les conteneurs ne redémarrent pas
+docker-compose -f docker-compose.prod.yml --env-file docker-compose.env restart erp-user-service
+```
+
+### Bonnes pratiques
+
+1. **Production** : Utilisez `unless-stopped` pour la plupart des services
+2. **Services critiques** : Utilisez `always` pour les services essentiels
+3. **Développement** : Utilisez `no` pour éviter les redémarrages intempestifs
+4. **Debug** : Utilisez `on-failure` pour identifier les problèmes de démarrage
+5. **Maintenance** : Changez temporairement vers `no` pendant les mises à jour
+
+### Impact sur les performances
+
+| Politique | Impact CPU | Impact Mémoire | Disponibilité |
+|-----------|------------|----------------|---------------|
+| `no` | Faible | Faible | Faible |
+| `on-failure` | Faible | Faible | Moyenne |
+| `unless-stopped` | Moyen | Moyen | Élevée |
+| `always` | Élevé | Élevé | Très élevée |
+
+### Dépannage
+
+#### Le conteneur ne redémarre pas
+```bash
+# Vérifier la politique
+docker inspect <container_name> | grep -i restart
+
+# Vérifier les logs
+docker logs <container_name>
+
+# Redémarrer manuellement
+docker restart <container_name>
+```
+
+#### Le conteneur redémarre en boucle
+```bash
+# Arrêter le conteneur
+docker stop <container_name>
+
+# Changer la politique vers 'no'
+echo "RESTART_POLICY=no" > docker-compose.env
+
+# Redémarrer
+docker-compose -f docker-compose.prod.yml --env-file docker-compose.env up -d
+```
+
 #### Configuration Mémoire
 Optimisation JVM pour la production :
 ```yaml
