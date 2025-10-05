@@ -8,7 +8,7 @@ pipeline {
         }
     }
     parameters {
-        booleanParam(name: 'DEPLOY_TO_EKS', defaultValue: false, description: 'Used to deploy all services in AWS EKS.')
+        booleanParam(name: 'DEPLOY_TO_EKS', defaultValue: true, description: 'Used to deploy all services in AWS EKS.')
         booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Used to skip tests.')
         booleanParam(name: 'SKIP_SONARQUBE', defaultValue: true, description: 'Used to skip SonarQube analysis.')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'test', 'pprd', 'prod'], description: 'Select the environment')
