@@ -145,7 +145,7 @@ services:
       # Spring Cloud Config URL
       SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # JVM Configuration
@@ -190,7 +190,7 @@ services:
       # Spring Cloud Config URL
       SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # JVM Configuration
@@ -227,7 +227,7 @@ services:
       # Spring Cloud Config URL
       SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # JVM Configuration
@@ -264,7 +264,7 @@ services:
       # Spring Cloud Config URL
       SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # JVM Configuration
@@ -301,7 +301,7 @@ services:
       # Spring Cloud Config URL
       SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # JVM Configuration
@@ -338,7 +338,7 @@ services:
       # Spring Cloud Config URL
       SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # JVM Configuration
@@ -375,7 +375,7 @@ services:
       # Spring Cloud Config URL
       SPRING_CLOUD_CONFIG_URI: ${SPRING_CLOUD_CONFIG_URI:-http://erp-config:8012}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # JVM Configuration
@@ -410,7 +410,7 @@ services:
       # Eureka Configuration
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # Spring Cloud Config
@@ -447,7 +447,7 @@ services:
       # Eureka Configuration
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # Spring Cloud Config
@@ -484,7 +484,7 @@ services:
       # Eureka Configuration
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # Spring Cloud Config
@@ -521,7 +521,7 @@ services:
       # Eureka Configuration
       EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: ${EUREKA_CLIENT_SERVICE_URL:-http://erp-service-discovery:8013/eureka/}
       # Database Configuration
-      DB_URL: ${SPRING_CLOUD_CONFIG_URI:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+      DB_URL: ${DB_URL:-jdbc:mysql://localhost:3306/achat_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
       DB_USERNAME: ${DB_USERNAME:-ahlem}
       DB_PASSWORD: ${DB_PASSWORD:-achat}
       # Spring Cloud Config
