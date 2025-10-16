@@ -59,7 +59,22 @@ pipeline {
 
                     echo "✅ This version is: ${env.POM_VERSION}"
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${CREDENTIALS_ID}"]]) {
-                        loginToAWSAndECR(env.AWS_DEFAULT_REGION, env.ECR_PRIVATE_REGISTRY_URL)
+                        try{
+                            loginToAWSAndECR(env.AWS_DEFAULT_REGION, env.ECR_PRIVATE_REGISTRY_URL)
+                            echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
+                            updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
+                                def status = sh(script: 'kubectl get nodes', returnStatus: true)
+                                if (status == 0) {
+                                    echo "✅ EKS cluster reachable"
+                                } else {
+                                    echo "⚠️ EKS cluster unreachable"
+                                }
+                            sh 'kubectl get svc --kubeconfig ~/.kube/config'
+                            sh 'kubectl get pods'
+                        } catch (Exception e) {
+                            echo "❌ An error occurred: ${e.getMessage()}"
+                            throw e
+                        }
                     }
                 }
             }
@@ -202,8 +217,6 @@ pipeline {
             steps {
                 script {
                     // Ensure kubeconfig is set for the target cluster
-                    echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
-                    updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
                     echo "🔍 Checking if namespace ${env.EKS_NAMESPACE} exists..."
                     def namespaceExists = sh(
                         script: "kubectl get namespace ${env.EKS_NAMESPACE} 2>/dev/null",
@@ -230,9 +243,6 @@ pipeline {
                     try {
                         echo "🔄 Start deploying ERP services to EKS."
                         println ecrServices
-                        // Deploy foundational services: MySQL and Keycloak
-                        createOrUpdateMySQL("mysql-${params.ENVIRONMENT}", env.EKS_NAMESPACE)
-                        createOrUpdateKeycloak("keycloak-${params.ENVIRONMENT}", env.EKS_NAMESPACE)
                         ecrServices.each { service, imageUrl ->
                             println "$service: $imageUrl"
                             def serviceName = "${service}-${params.ENVIRONMENT}"
@@ -475,150 +485,4 @@ def getServicePort(String serviceName) {
     ]
     
     return portMap.get(serviceName, 8080)
-}
-
-def createOrUpdateMySQL(String baseName, String namespace) {
-    try {
-        echo "🔄 Creating/Updating MySQL (ClusterIP) ..."
-        def name = baseName
-        def deploymentYaml = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${name}-deployment
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${name}
-  template:
-    metadata:
-      labels:
-        app: ${name}
-    spec:
-      containers:
-      - name: mysql
-        image: mysql:8.0
-        ports:
-        - containerPort: 3306
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "root"
-        - name: MYSQL_DATABASE
-          value: "achat_db"
-        - name: MYSQL_USER
-          value: "ahlem"
-        - name: MYSQL_PASSWORD
-          value: "achat"
-        args: ["--default-authentication-plugin=mysql_native_password"]
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-"""
-
-        def serviceYaml = """
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${name}-service
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  selector:
-    app: ${name}
-  ports:
-  - port: 3306
-    targetPort: 3306
-    protocol: TCP
-  type: ClusterIP
-"""
-
-        writeFile file: "${name}-deployment.yaml", text: deploymentYaml
-        writeFile file: "${name}-service.yaml", text: serviceYaml
-        sh "kubectl apply -f ${name}-deployment.yaml"
-        sh "kubectl apply -f ${name}-service.yaml"
-        echo "✅ MySQL deployed/updated."
-    } catch (Exception e) {
-        echo "❌ Error creating MySQL: ${e.message}"
-        throw e
-    }
-}
-
-def createOrUpdateKeycloak(String baseName, String namespace) {
-    try {
-        echo "🔄 Creating/Updating Keycloak (LoadBalancer) ..."
-        def name = baseName
-        def deploymentYaml = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${name}-deployment
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${name}
-  template:
-    metadata:
-      labels:
-        app: ${name}
-    spec:
-      containers:
-      - name: keycloak
-        image: quay.io/keycloak/keycloak:24.0.3
-        args: ["start-dev"]
-        ports:
-        - containerPort: 8080
-        env:
-        - name: KEYCLOAK_ADMIN
-          value: "admin"
-        - name: KEYCLOAK_ADMIN_PASSWORD
-          value: "passw0rd"
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-"""
-
-        def serviceYaml = """
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${name}-service
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  selector:
-    app: ${name}
-  ports:
-  - port: 8080
-    targetPort: 8080
-    protocol: TCP
-  type: LoadBalancer
-"""
-
-        writeFile file: "${name}-deployment.yaml", text: deploymentYaml
-        writeFile file: "${name}-service.yaml", text: serviceYaml
-        sh "kubectl apply -f ${name}-deployment.yaml"
-        sh "kubectl apply -f ${name}-service.yaml"
-        echo "✅ Keycloak deployed/updated and exposed externally."
-    } catch (Exception e) {
-        echo "❌ Error creating Keycloak: ${e.message}"
-        throw e
-    }
 }
