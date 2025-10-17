@@ -420,7 +420,7 @@ metadata:
     environment: ${params.ENVIRONMENT}
 data:
   # Spring Profile Configuration
-  SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prd}
+  SPRING_PROFILES_ACTIVE: "prd"
   # JVM Configuration
   JAVA_OPTS: "-Xmx512m -Xms256m"
   # Désactiver la configuration Git pour éviter les problèmes de permissions
