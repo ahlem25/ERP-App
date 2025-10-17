@@ -62,14 +62,21 @@ pipeline {
                         try{
                             loginToAWSAndECR(env.AWS_DEFAULT_REGION, env.ECR_PRIVATE_REGISTRY_URL)
                             echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
+                            sh 'rm -rf ~/.kube/cache ~/.aws/cli/cache ~/.kube/config'
+                            #sh 'kubectl config view'
                             updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
+                            #sh 'kubectl config view'
+                            sh 'aws eks get-token --region eu-west-3 --cluster-name erp-app-cluster'
+                            #sh 'aws sts get-caller-identity'
+                            #sh 'kubectl config view'
+                            #sh 'kubectl config current-context'
                                 def status = sh(script: 'kubectl get nodes', returnStatus: true)
                                 if (status == 0) {
                                     echo "✅ EKS cluster reachable"
                                 } else {
                                     echo "⚠️ EKS cluster unreachable"
                                 }
-                            sh 'kubectl get svc --kubeconfig ~/.kube/config'
+                            #sh 'kubectl get svc --kubeconfig ~/.kube/config'
                             sh 'kubectl get pods'
                         } catch (Exception e) {
                             echo "❌ An error occurred: ${e.getMessage()}"
@@ -116,7 +123,7 @@ pipeline {
             }
         }
 
-        stage('Integration Test') { 
+        stage('Integration Test') {
             when {
                 expression { return !params.SKIP_TESTS }
             }
@@ -169,7 +176,7 @@ pipeline {
                     echo 'Find Jar files for ERP services...'
                     def erp_services = [
                         "erp-service-discovery",
-                        "erp-config", 
+                        "erp-config",
                         "erp-api-gateway",
                         "erp-user-service",
                         "erp-product-service",
@@ -183,7 +190,7 @@ pipeline {
                         "erp-dashboard-service",
                         "erp-scheduler-service"
                     ]
-                    
+
                     def jar_files = []
                     erp_services.each { service ->
                         sh(script: """find ./${service}/ -name '*.jar'""", returnStdout: true).trim().split('\n').each { jar_files << it }
@@ -222,7 +229,7 @@ pipeline {
                         script: "kubectl get namespace ${env.EKS_NAMESPACE} 2>/dev/null",
                         returnStatus: true
                     )
-                    
+
                     if (namespaceExists != 0) {
                         echo "⚡ Creating namespace ${env.EKS_NAMESPACE}..."
                         sh "kubectl create namespace ${env.EKS_NAMESPACE}"
@@ -247,13 +254,13 @@ pipeline {
                             println "$service: $imageUrl"
                             def serviceName = "${service}-${params.ENVIRONMENT}"
                             def deploymentName = "${serviceName}-deployment"
-                            
+
                             // Create or update deployment
                             createOrUpdateKubernetesDeployment(serviceName, imageUrl, env.EKS_NAMESPACE)
-                            
+
                             // Create or update service
                             createOrUpdateKubernetesService(serviceName, env.EKS_NAMESPACE)
-                            
+
                             echo "🔄 Deploying EKS service: ${serviceName}"
                         }
                         echo "✅ All ERP services have been deployed successfully."
@@ -342,11 +349,49 @@ def deleteImageWithSameTagBeforePushDocker(String awsRegion, String ecrRepoURL, 
 
 def updateKubeconfig(String awsRegion, String clusterName) {
     try {
-        echo "Starting to update kubeconfig..."
+        echo "🔄 Updating kubeconfig for cluster: ${clusterName}..."
+
+        // 1️⃣ Mise à jour du kubeconfig
         sh """
-            aws eks update-kubeconfig --region ${awsRegion} --name ${clusterName}
+            aws eks update-kubeconfig \
+                --region ${awsRegion} \
+                --name ${clusterName} \
+                --alias ${clusterName}
         """
-        echo "✅ Kubeconfig updated."
+
+        // 2️⃣ Correction du chemin du binaire AWS et de l’API version
+        sh '''
+        AWS_PATH=$(which aws)
+        echo "🧩 AWS CLI path detected: $AWS_PATH"
+
+        # Remplace la commande AWS dans kubeconfig par son chemin absolu
+        sed -i "s|command: aws|command: ${AWS_PATH}|" ~/.kube/config
+
+        # Force la version API à v1 (plus stable que v1beta1)
+        sed -i "s|client.authentication.k8s.io/v1beta1|client.authentication.k8s.io/v1|" ~/.kube/config
+
+        echo "🧩 Patching kubeconfig to add interactiveMode: IfAvailable..."
+        sed -i '/command: .*aws/a\\      interactiveMode: IfAvailable' /var/lib/jenkins/.kube/config
+
+        #cat /var/lib/jenkins/.kube/config
+        #kubectl config view
+
+        echo "✅ kubeconfig successfully patched!"
+        '''
+
+        // 3️⃣ Vérifications de l’environnement et des permissions
+        sh '''
+        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        export AWS_DEFAULT_REGION=eu-west-3
+        export PATH=$PATH:/usr/local/bin
+
+        echo "🔍 Vérification d’accès à AWS et EKS..."
+        aws sts get-caller-identity
+        kubectl config current-context
+        '''
+
+        echo "✅ Kubeconfig ready for use with kubectl."
     } catch (Exception e) {
         error "❌ Failed to update kubeconfig: ${e.message}"
     }
@@ -355,7 +400,7 @@ def updateKubeconfig(String awsRegion, String clusterName) {
 def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, String namespace) {
     try {
         echo "🔄 Creating/Updating Kubernetes deployment for ${serviceName}..."
-        
+
         def deploymentYaml = """
 apiVersion: apps/v1
 kind: Deployment
@@ -418,9 +463,9 @@ spec:
 
         // Apply deployment
         sh "kubectl apply -f ${serviceName}-deployment.yaml"
-        
+
         echo "✅ Deployment ${serviceName}-deployment created/updated successfully!"
-        
+
     } catch (Exception e) {
         echo "❌ Error creating deployment: ${e.message}"
         throw e
@@ -430,10 +475,10 @@ spec:
 def createOrUpdateKubernetesService(String serviceName, String namespace) {
     try {
         echo "🔄 Creating/Updating Kubernetes service for ${serviceName}..."
-        
+
         // Get port from service name
         def port = getServicePort(serviceName)
-        
+
         def serviceYaml = """
 apiVersion: v1
 kind: Service
@@ -457,9 +502,9 @@ spec:
 
         // Apply service
         sh "kubectl apply -f ${serviceName}-service.yaml"
-        
+
         echo "✅ Service ${serviceName}-service created/updated successfully!"
-        
+
     } catch (Exception e) {
         echo "❌ Error creating service: ${e.message}"
         throw e
@@ -483,6 +528,6 @@ def getServicePort(String serviceName) {
         "erp-dashboard-service": 8065,
         "erp-scheduler-service": 8066
     ]
-    
+
     return portMap.get(serviceName, 8080)
 }
