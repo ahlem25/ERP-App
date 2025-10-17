@@ -412,8 +412,8 @@ metadata:
   name: erp-global-config
   namespace: ${namespace}
   labels:
-    app: erp-config
-    environment: production
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
 data:
   # Spring Configuration
   SPRING_PROFILES_ACTIVE: "prd"
@@ -436,6 +436,9 @@ kind: ConfigMap
 metadata:
   name: erp-database-config
   namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
 data:
   DB_URL: "jdbc:mysql://mysql-erp-dev-service:3306/erp_db?useSSL=false"
   DB_USERNAME: "admin"
@@ -447,6 +450,9 @@ kind: ConfigMap
 metadata:
   name: erp-Keycloak-config
   namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
 data:
   # Keycloak Configuration
   KEYCLOAK_URL: "http://keycloak-service:8080"
@@ -481,7 +487,10 @@ metadata:
   name: ${serviceName}-deployment
   namespace: ${namespace}
   labels:
-    app: ${serviceName}
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+    version: ${env.POM_VERSION}
+    managed-by: jenkins
 spec:
   replicas: 2
   selector:
@@ -580,6 +589,9 @@ metadata:
   namespace: ${namespace}
   labels:
     app: ${serviceName}
+    environment: ${params.ENVIRONMENT}
+    version: ${env.POM_VERSION}
+    managed-by: jenkins
 spec:
   selector:
     app: ${serviceName}
