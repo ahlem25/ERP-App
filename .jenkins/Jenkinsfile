@@ -76,7 +76,7 @@ pipeline {
                                 } else {
                                     echo "⚠️ EKS cluster unreachable"
                                 }
-                            # sh 'kubectl get svc --kubeconfig ~/.kube/config'
+                            // sh 'kubectl get svc --kubeconfig ~/.kube/config'
                             sh 'kubectl get pods'
                         } catch (Exception e) {
                             echo "❌ An error occurred: ${e.getMessage()}"
