@@ -448,7 +448,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: erp-Keycloak-config
+  name: erp-keycloak-config
   namespace: ${namespace}
   labels:
     app: erp-app
