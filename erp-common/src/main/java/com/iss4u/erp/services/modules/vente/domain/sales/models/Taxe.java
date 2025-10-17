@@ -1,5 +1,6 @@
 package com.iss4u.erp.services.modules.vente.domain.sales.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.iss4u.erp.services.modules.stock.domain.models.BonLivraison;
 import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
@@ -24,10 +25,15 @@ public class Taxe {
 
 
     @OneToMany(mappedBy = "taxe", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "taxe-bonlivraison")
+    @JsonManagedReference(value = "taxe-bon-livraisons")
     private List<BonLivraison> bonLivraisons;
 
-    @OneToMany(mappedBy = "taxe", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference
-    private List<CommandeClient> commandes;
+    @ManyToOne
+    @JoinColumn(name = "taxe_id")
+    @JsonBackReference(value = "taxe-commandes")
+    private Taxe taxe;
+
+
+
+
 }

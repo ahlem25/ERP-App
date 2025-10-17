@@ -41,10 +41,6 @@ public class DevisFournisseur {
     @JsonBackReference(value = "devis-fournisseur")
     private Fournisseur fournisseur;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<Article> articles;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    private List<TaxesFrais> taxes;
 }
 

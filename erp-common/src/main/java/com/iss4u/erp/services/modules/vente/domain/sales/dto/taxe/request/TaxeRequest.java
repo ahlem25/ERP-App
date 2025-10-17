@@ -2,6 +2,7 @@ package com.iss4u.erp.services.modules.vente.domain.sales.dto.taxe.request;
 
 import com.iss4u.erp.services.modules.stock.domain.models.BonLivraison;
 import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.FactureVente;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -17,4 +18,5 @@ public class TaxeRequest {
     private String type;
     private List<BonLivraison> bonLivraisons;
     private List<CommandeClient> commandes;
+
 }

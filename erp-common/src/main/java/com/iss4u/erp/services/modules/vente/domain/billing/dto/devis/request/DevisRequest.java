@@ -19,7 +19,7 @@ public class DevisRequest {
     private Date validite;
     private Float montantTotal;
     private Client client;
-    private List<Article> articles;
+
 
 
 }

@@ -2,7 +2,7 @@ package com.iss4u.erp.services.modules.achat.domain.common.models;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.iss4u.erp.services.modules.achat.domain.fournisseur.models.Fournisseur;
+// import com.iss4u.erp.services.modules.achat.domain.fournisseur.models.Fournisseur;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -54,13 +54,13 @@ public class PrixArticle {
     private String note;
 
     @ManyToOne
-    @JsonBackReference(value = "article-prix")
+    @JoinColumn(name = "article_id")
+    @JsonBackReference(value = "article-prix-articles")
     private Article article;
 
     @ManyToOne
-    @JsonBackReference(value = "listePrix-prixArticles")
-    private ListePrix listeDePrix;
-
+    @JsonBackReference(value = "liste-prix-prix-articles")
+    private ListePrix listePrix;
 
 
 

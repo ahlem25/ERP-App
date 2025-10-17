@@ -33,8 +33,6 @@ public class DevisFournisseurResponse {
     private BigDecimal totalArrondi;
     private Boolean desactiverTotalArrondi;
    private Fournisseur fournisseur;
-    private List<Article> articles;
-    private List<TaxesFrais> taxes;
 
 
 }

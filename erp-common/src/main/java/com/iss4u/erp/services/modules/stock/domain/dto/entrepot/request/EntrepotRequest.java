@@ -1,10 +1,15 @@
 package com.iss4u.erp.services.modules.stock.domain.dto.entrepot.request;
 
+import com.iss4u.erp.services.modules.stock.domain.models.LivreInventaire;
+import com.iss4u.erp.services.modules.stock.domain.models.SoldeStock;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.iss4u.erp.services.modules.stock.domain.models.Entrepot;
 import com.iss4u.erp.services.modules.vente.domain.sales.models.Societe;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -17,7 +22,9 @@ public class EntrepotRequest {
 
     private String adresse;
     private String telephoneNumber;
-    private Societe societe;
 
+    private List<SoldeStock> soldeStocks;
+    private List<LivreInventaire> livreInventaires;
+    private List<CommandeClient> commandes;
 
 }

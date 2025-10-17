@@ -24,13 +24,12 @@ public class Devis {
     private String numero;
     private Date validite;
     private Float montantTotal;
-
-    // Dans Devis.java
     @ManyToOne
     @JoinColumn(name = "client_id")
-    @JsonBackReference
+    @JsonBackReference("client-devis")
     private Client client;
 
-    @ManyToMany
-    private List<Article> articles;
+
+
+
 }

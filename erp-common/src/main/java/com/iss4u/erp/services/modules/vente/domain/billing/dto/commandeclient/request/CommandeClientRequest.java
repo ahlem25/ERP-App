@@ -30,7 +30,7 @@ public class CommandeClientRequest {
     private Article article;
     private FactureVente facture;
     private Entrepot entrepot;
-    private Taxe taxes;
-    private ListePrix listePrix;
+    private Taxe taxe;
+
 
 }

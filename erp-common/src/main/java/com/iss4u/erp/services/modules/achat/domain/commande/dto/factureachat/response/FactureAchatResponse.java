@@ -41,7 +41,7 @@ public class FactureAchatResponse {
     private String projet;
     private String devise;
     private Fournisseur fournisseur;
-    private List<Item> articlesFactures;
+
 
 
 }

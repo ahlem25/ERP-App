@@ -24,7 +24,7 @@ public class Paiement {
 
     @ManyToOne
     @JoinColumn(name = "facture_id")
-    @JsonBackReference(value = "facture-paiement") // <- ici c’est le back
+    @JsonBackReference(value = "facture-paiements") // <- ici c’est le back
     private FactureVente facture;
 
 

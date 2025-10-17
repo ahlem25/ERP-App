@@ -8,6 +8,7 @@ import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
 import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
 import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -17,23 +18,16 @@ import java.time.LocalTime;
 public class BonLivraisonResponse {
     private Long id;
 
-
     private String serie;
     private LocalDate date;
     private LocalTime heure;
-    private Boolean estRetour;
-
-
+    private boolean estRetour;
     private String devise;
-
-    private Boolean ignorerRegleTarification;
-
-    private Double quantiteTotale;
-    private Double montantTotal;
-    private ListePrix listeDePrix;
-    private Client client;
+    private boolean ignorerRegleTarification;
+    private BigDecimal quantiteTotale;
+    private BigDecimal montantTotal;
     private Article article;
-    private Taxe taxes;
+    private Taxe taxe;
 
 
 }

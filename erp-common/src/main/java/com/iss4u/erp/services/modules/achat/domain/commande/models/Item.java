@@ -26,9 +26,7 @@ public class Item {
     private String commentaire;
 
 
-    @ManyToOne
-    @JsonBackReference(value = "facture-items")
-    private FactureAchat factureAchat;
+
 
 }
 

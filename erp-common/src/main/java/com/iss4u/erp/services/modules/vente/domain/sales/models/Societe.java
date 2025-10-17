@@ -36,24 +36,19 @@ public class Societe {
     @Column(name = "est_groupe")
     private Boolean estGroupe = false;
 
-    @OneToMany(mappedBy = "societe")
-    private List<ProfilPDV> profilsPDV;
 
-    @OneToMany(mappedBy = "societe")
-    @JsonManagedReference(value = "societe-factures")
-    private List<FactureVente> factures;
+
 
 
     @OneToMany(mappedBy = "societe")
+    @JsonManagedReference(value = "societe-vendeurs")
     private List<Vendeur> vendeurs;
 
-    @OneToMany(mappedBy = "societe")
-    private List<Opportunite> opportunites;
 
 
 
-    @OneToMany(mappedBy = "societe")
-    @JsonManagedReference(value = "societe-entrepots")
-    private List<Entrepot> entrepots;
+
+
+
 
 }

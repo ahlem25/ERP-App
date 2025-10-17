@@ -5,6 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.iss4u.erp.services.modules.achat.domain.commande.models.DemandeMateriel;
 import com.iss4u.erp.services.modules.stock.domain.models.BonLivraison;
+import com.iss4u.erp.services.modules.stock.domain.models.LivreInventaire;
+import com.iss4u.erp.services.modules.stock.domain.models.SoldeStock;
+import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
+import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -34,16 +38,32 @@ public class Article {
     private GroupeArticle groupeArticle;
 
     @OneToMany(mappedBy = "article")
-    @JsonManagedReference(value = "article-prix")
-    private List<PrixArticle> prixArticles;
+    private List<PrixArticle> prixArticle;
 
     @OneToMany(mappedBy = "article")
     @JsonManagedReference(value = "article-demande")
     private List<DemandeMateriel> demandesMateriel;
 
 
-    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "article-bonlivraison")
-    private List<BonLivraison> bonLivraisons;
+    @ManyToOne
+    @JoinColumn(name = "client_id")
+    @JsonBackReference(value = "client-articles")
+    private Client client;
+
+    @OneToMany(mappedBy = "article")
+    @JsonManagedReference(value = "article-soldeStock")
+    private List<SoldeStock> soldeStocks;
+
+    @OneToMany(mappedBy = "article")
+    @JsonManagedReference(value = "article-commandes")
+    private List<CommandeClient> commandes;
+
+
+
+    @OneToMany(mappedBy = "article")
+    @JsonManagedReference(value = "article-livreInventaire")
+    private List<LivreInventaire> livreInventaires;
+
+
 
 }

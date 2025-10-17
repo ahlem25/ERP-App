@@ -1,5 +1,6 @@
 package com.iss4u.erp.services.modules.vente.domain.sales.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
 import com.iss4u.erp.services.modules.vente.domain.sales.models.ObjectifCommercial;
@@ -25,10 +26,11 @@ public class Vendeur {
     private String equipeParente;
 
     @ManyToOne
+    @JsonBackReference(value = "societe-vendeurs")
     private Societe societe;
 
-    @OneToMany(mappedBy = "vendeur")
-    private List<ObjectifCommercial> objectifs;
+
+
 
 
 }

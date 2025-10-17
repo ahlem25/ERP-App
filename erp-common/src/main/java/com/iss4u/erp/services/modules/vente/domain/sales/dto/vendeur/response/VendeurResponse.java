@@ -18,8 +18,8 @@ public class VendeurResponse {
     private Float commission;
     private String equipeParente;
     private Societe societe;
-    private List<ObjectifCommercial> objectifs;
-    private List<Client> clients;
+
+
 
 
 }

@@ -23,6 +23,5 @@ public class Opportunite {
     @ManyToOne
     private Client clientPotentiel;
 
-    @ManyToOne
-    private Societe societe;
+
 }

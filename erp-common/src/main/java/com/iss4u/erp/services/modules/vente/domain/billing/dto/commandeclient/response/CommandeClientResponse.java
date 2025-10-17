@@ -31,7 +31,7 @@ public class CommandeClientResponse {
     private Article article;
     private FactureVente facture;
     private Entrepot entrepot;
-    private Taxe taxes;
-    private ListePrix listePrix;
+    private Taxe taxe;
+
 
 }

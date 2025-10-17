@@ -23,8 +23,6 @@ public class ProfilPDV {
     private String entrepotAssocie;
     private String parametresImpression;
 
-    @ManyToOne
-    private Societe societe;
 
     @OneToMany
     private List<MethodePaiement> methodesPaiement;

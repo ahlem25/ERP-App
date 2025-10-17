@@ -36,13 +36,11 @@ public class FactureAchat {
     private String projet;
     private String devise;
 
-    @ManyToOne(optional = false) // ✅ obligatoire pour la contrainte en base
+    @ManyToOne
     @JoinColumn(name = "fournisseur_id", nullable = false)
     @JsonBackReference(value = "factures-fournisseur")
     private Fournisseur fournisseur;
 
-    @OneToMany(mappedBy = "factureAchat", cascade = CascadeType.ALL, orphanRemoval = true)
-    @JsonManagedReference(value = "facture-items")
-    private List<Item> articlesFactures;
+
 
 }

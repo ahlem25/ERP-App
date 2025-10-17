@@ -1,12 +1,10 @@
 package com.iss4u.erp.services.modules.achat.domain.common.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.iss4u.erp.services.modules.achat.domain.commande.models.DemandeMateriel;
 import com.iss4u.erp.services.modules.achat.domain.common.models.PrixArticle;
-import com.iss4u.erp.services.modules.achat.domain.fournisseur.models.Fournisseur;
-import com.iss4u.erp.services.modules.stock.domain.models.BonLivraison;
-import com.iss4u.erp.services.modules.vente.domain.client.models.Client;
-import com.iss4u.erp.services.modules.vente.domain.client.models.GroupeClient;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -19,6 +17,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ListePrix {
 
     @Id
@@ -39,27 +38,8 @@ public class ListePrix {
 
     private boolean prixIndependantUniteMesure;
 
-    @OneToMany(mappedBy = "listeDePrix")
-    @JsonManagedReference(value = "listePrix-prixArticles")
-    private List<PrixArticle> prixArticles;
-
     @OneToMany(mappedBy = "listePrix")
-    @JsonManagedReference(value = "listePrix-clients")
-    private List<Client> clients;
-
-    @OneToMany(mappedBy = "listePrix")
-    @JsonManagedReference(value = "listePrix-groupesClients")
-    private List<GroupeClient> groupeClient;
-
-    @OneToMany(mappedBy = "listeDePrix")
-    @JsonManagedReference(value = "listePrix-fournisseurs")
-    private List<Fournisseur> fournisseurs;
-
-
-
-
-    @OneToMany(mappedBy = "listePrix")
-    @JsonManagedReference(value = "listePrix-bonlivraisons")
-    private List<BonLivraison> bonLivraisons;
+    @JsonManagedReference(value = "liste-prix-prix-articles")
+    private List<PrixArticle> prixArticle;
 
 }

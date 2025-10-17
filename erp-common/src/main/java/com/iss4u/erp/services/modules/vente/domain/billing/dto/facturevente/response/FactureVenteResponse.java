@@ -1,5 +1,6 @@
 package com.iss4u.erp.services.modules.vente.domain.billing.dto.facturevente.response;
 
+import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
 import com.iss4u.erp.services.modules.vente.domain.payment.models.Paiement;
 import com.iss4u.erp.services.modules.vente.domain.sales.models.Taxe;
 import lombok.Data;
@@ -48,10 +49,10 @@ public class FactureVenteResponse {
     private String numero;
 
     private Double montantTtc;
-    private Client client;
-    private Societe societe;
+
+
     private List<Paiement> paiements;
-    private List<Taxe> taxes;
 
 
+    private List<CommandeClient> commandes;
 }

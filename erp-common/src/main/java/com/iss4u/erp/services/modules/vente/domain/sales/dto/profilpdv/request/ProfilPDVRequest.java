@@ -16,7 +16,7 @@ public class ProfilPDVRequest {
     private String methodesPaiementAutorisees;
     private String entrepotAssocie;
     private String parametresImpression;
-    private Societe societe;
+
     private List<MethodePaiement> methodesPaiement;
 
 

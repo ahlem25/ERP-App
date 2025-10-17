@@ -1,11 +1,12 @@
 package com.iss4u.erp.services.modules.achat.domain.common.dto.prixarticle.response;
 
+import com.iss4u.erp.services.modules.achat.domain.common.models.ListePrix;
 import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
-import com.iss4u.erp.services.modules.achat.domain.common.models.ListePrix;
+
 import com.iss4u.erp.services.modules.achat.domain.fournisseur.models.Fournisseur;
 
 import java.math.BigDecimal;
@@ -48,7 +49,8 @@ public class PrixArticleResponse {
     @Column(length = 1000)
     private String note;
     private Article article;
-    private ListePrix listeDePrix;
+    private ListePrix listePrix;
+
 
 
 

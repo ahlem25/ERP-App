@@ -14,7 +14,7 @@ public class OpportuniteRequest {
     private Float probabilite;
     private Float montantEstime;
     private Client clientPotentiel;
-    private Societe societe;
+
 
 
 }

@@ -13,6 +13,6 @@ public class GroupeClientResponse {
     private String nom;
     private String modeleConditionsPaiementParDefaut;
     private boolean estGroupe;
-    private ListePrix listePrix;
+
 
 }

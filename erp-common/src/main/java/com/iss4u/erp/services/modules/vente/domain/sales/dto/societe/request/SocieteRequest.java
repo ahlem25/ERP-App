@@ -31,10 +31,6 @@ public class SocieteRequest {
 
     @Column(name = "est_groupe")
     private Boolean estGroupe = false;
-    private List<ProfilPDV> profilsPDV;
-    private List<FactureVente> factures;
     private List<Vendeur> vendeurs;
-    private List<Opportunite> opportunites;
 
-    private List<Entrepot> entrepots;
 }

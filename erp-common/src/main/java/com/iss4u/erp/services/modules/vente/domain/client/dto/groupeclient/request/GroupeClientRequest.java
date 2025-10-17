@@ -12,6 +12,6 @@ public class GroupeClientRequest {
     private String nom;
     private String modeleConditionsPaiementParDefaut;
     private boolean estGroupe;
-    private ListePrix listePrix;
+
 
 }

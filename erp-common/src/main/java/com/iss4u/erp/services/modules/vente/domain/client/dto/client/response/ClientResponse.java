@@ -1,12 +1,9 @@
 package com.iss4u.erp.services.modules.vente.domain.client.dto.client.response;
 
-import com.iss4u.erp.services.modules.achat.domain.common.models.ListePrix;
-import com.iss4u.erp.services.modules.core.domain.models.Utilisateur;
-import com.iss4u.erp.services.modules.stock.domain.models.BonLivraison;
+
 import com.iss4u.erp.services.modules.vente.domain.billing.models.CommandeClient;
 import com.iss4u.erp.services.modules.vente.domain.billing.models.Devis;
 import com.iss4u.erp.services.modules.vente.domain.billing.models.FactureVente;
-import com.iss4u.erp.services.modules.vente.domain.payment.models.MethodePaiement;
 import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -35,6 +32,5 @@ public class ClientResponse {
     private List<CommandeClient> commandes;
     private List<FactureVente> factures;
     private List<Devis> devis;
-    private ListePrix listePrix;
-    private List<BonLivraison> bonLivraisons;
+
 }

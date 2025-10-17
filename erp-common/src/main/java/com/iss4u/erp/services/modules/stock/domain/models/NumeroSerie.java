@@ -1,11 +1,14 @@
 package com.iss4u.erp.services.modules.stock.domain.models;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 @Entity
 @Data
@@ -20,4 +23,9 @@ public class NumeroSerie {
     @ManyToOne
     private Article article;
     private Double garantie;
+
+    @OneToMany(mappedBy = "numeroSerie", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference(value = "numeroSerie-livreInventaire")
+    private List<LivreInventaire> livreInventaires;
+
 }
