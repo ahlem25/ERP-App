@@ -249,6 +249,9 @@ pipeline {
                 script {
                     try {
                         echo "🔄 Start deploying ERP services to EKS."
+                        echo "⚙️ Step 1: Applying shared ConfigMap to namespace ${env.EKS_NAMESPACE}..."
+                        createOrUpdateConfigMap(env.EKS_NAMESPACE)
+                        echo "⚙️ Step 2: Deploy all microservice (create deployment & service) to namespace ${env.EKS_NAMESPACE}..."
                         println ecrServices
                         ecrServices.each { service, imageUrl ->
                             println "$service: $imageUrl"
@@ -397,6 +400,76 @@ def updateKubeconfig(String awsRegion, String clusterName) {
     }
 }
 
+def createOrUpdateConfigMap(String namespace) {
+    try {
+        echo "📦 Creating or updating ConfigMap in namespace ${namespace}..."
+
+        // Example shared ConfigMap (customize as needed)
+        def configMapYaml = """
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-global-config
+  namespace: ${namespace}
+  labels:
+    app: erp-config
+    environment: production
+data:
+  # Spring Configuration
+  SPRING_PROFILES_ACTIVE: "prd"
+
+  # Database Configuration
+  DB_URL: "jdbc:mysql://mysql-service:3306/erp_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+  DB_USERNAME: "admin"
+
+  # Eureka Configuration
+  EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://erp-service-discovery-service:8013/eureka/"
+
+  # Spring Cloud Config
+  SPRING_CLOUD_CONFIG_URI: "http://erp-config-service:8012"
+  
+  # JVM Configuration
+  JAVA_OPTS: "-Xmx1024m -Xms512m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-database-config
+  namespace: ${namespace}
+data:
+  DB_URL: "jdbc:mysql://mysql-erp-dev-service:3306/erp_db?useSSL=false"
+  DB_USERNAME: "admin"
+  DB_PASSWORD: "erp_password_2024"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-Keycloak-config
+  namespace: ${namespace}
+data:
+  # Keycloak Configuration
+  KEYCLOAK_URL: "http://keycloak-service:8080"
+  KEYCLOAK_REALM: "erp-realm"
+  KEYCLOAK_CLIENT_ID: "erp-client"
+  KEYCLOAK_CLIENT_SECRET: "your-client-secret"
+  KEYCLOAK_ADMIN_USERNAME: "admin"
+  KEYCLOAK_ADMIN_PASSWORD: "passw0rd"
+
+"""
+
+        // Save YAML file and apply it
+        writeFile file: "erp-configmap.yaml", text: configMapYaml
+        sh "kubectl apply -f erp-configmap.yaml"
+
+        echo "✅ ConfigMap applied successfully!"
+    } catch (Exception e) {
+        echo "❌ Error while applying ConfigMap: ${e.getMessage()}"
+        throw e
+    }
+}
+
+
 def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, String namespace) {
     try {
         echo "🔄 Creating/Updating Kubernetes deployment for ${serviceName}..."
@@ -426,17 +499,37 @@ spec:
         - containerPort: 8080
         env:
         - name: SPRING_PROFILES_ACTIVE
-          value: "${params.ENVIRONMENT}"
+          valueFrom:
+            configMapKeyRef:
+              name: erp-global-config
+              key: SPRING_PROFILES_ACTIVE
         - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-          value: "http://erp-service-discovery-${params.ENVIRONMENT}-service:8013/eureka/"
+          valueFrom:
+            configMapKeyRef:
+              name: erp-global-config
+              key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
         - name: SPRING_CLOUD_CONFIG_URI
-          value: "http://erp-config-${params.ENVIRONMENT}-service:8012"
-        - name: DB_URL
-          value: "jdbc:mysql://mysql-${params.ENVIRONMENT}-service:3306/erp_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-        - name: DB_USERNAME
-          value: "admin"
-        - name: DB_PASSWORD
-          value: "erp_password_2024"
+          valueFrom:
+            configMapKeyRef:
+              name: erp-global-config
+              key: SPRING_CLOUD_CONFIG_URI
+        - name: JAVA_OPTS
+          valueFrom:
+            configMapKeyRef:
+              name: erp-global-config
+              key: JAVA_OPTS
+        #- name: SPRING_PROFILES_ACTIVE
+        #  value: "${params.ENVIRONMENT}"
+        #- name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+        #  value: "http://erp-service-discovery-${params.ENVIRONMENT}-service:8013/eureka/"
+        #- name: SPRING_CLOUD_CONFIG_URI
+        #  value: "http://erp-config-${params.ENVIRONMENT}-service:8012"
+        #- name: DB_URL
+        #  value: "jdbc:mysql://mysql-${params.ENVIRONMENT}-service:3306/erp_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+        #- name: DB_USERNAME
+        #  value: "admin"
+        #- name: DB_PASSWORD
+        #  value: "erp_password_2024"
         resources:
           requests:
             memory: "512Mi"
