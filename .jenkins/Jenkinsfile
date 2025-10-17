@@ -585,7 +585,7 @@ def createOrUpdateKubernetesService(String serviceName, String namespace) {
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${serviceName}-service
+  name: ${serviceName}
   namespace: ${namespace}
   labels:
     app: ${serviceName}
