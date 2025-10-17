@@ -409,7 +409,7 @@ def createOrUpdateConfigMap(String namespace) {
         def serviceDiscoveryPort = getServicePort("erp-service-discovery")
 
         // Example shared ConfigMap (customize as needed)
-        def configMapYaml = """
+        def configMapYaml = '''
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -480,7 +480,7 @@ data:
   KEYCLOAK_CLIENT_SECRET: "your-client-secret"
   KEYCLOAK_ADMIN_USERNAME: "admin"
   KEYCLOAK_ADMIN_PASSWORD: "passw0rd"
-"""
+'''
 
         // Save YAML file and apply it
         writeFile file: "erp-configmap.yaml", text: configMapYaml
