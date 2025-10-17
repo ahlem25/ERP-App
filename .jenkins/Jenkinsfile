@@ -66,7 +66,7 @@ pipeline {
                             // sh 'kubectl config view'
                             updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
                             // sh 'kubectl config view'
-                            sh 'aws eks get-token --region eu-west-3 --cluster-name erp-app-cluster'
+                            // sh 'aws eks get-token --region eu-west-3 --cluster-name erp-app-cluster'
                             // sh 'aws sts get-caller-identity'
                             // sh 'kubectl config view'
                             // sh 'kubectl config current-context'
