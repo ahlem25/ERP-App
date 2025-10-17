@@ -524,8 +524,6 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
               name: ${cm}"""
         }.join('\n')
 
-        print($envFromYaml)
-
 
         // 4️⃣ Generate the final deployment YAML
         def deploymentYaml = """
