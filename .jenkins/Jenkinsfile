@@ -63,20 +63,20 @@ pipeline {
                             loginToAWSAndECR(env.AWS_DEFAULT_REGION, env.ECR_PRIVATE_REGISTRY_URL)
                             echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
                             sh 'rm -rf ~/.kube/cache ~/.aws/cli/cache ~/.kube/config'
-                            #sh 'kubectl config view'
+                            # sh 'kubectl config view'
                             updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
-                            #sh 'kubectl config view'
+                            # sh 'kubectl config view'
                             sh 'aws eks get-token --region eu-west-3 --cluster-name erp-app-cluster'
-                            #sh 'aws sts get-caller-identity'
-                            #sh 'kubectl config view'
-                            #sh 'kubectl config current-context'
+                            # sh 'aws sts get-caller-identity'
+                            # sh 'kubectl config view'
+                            # sh 'kubectl config current-context'
                                 def status = sh(script: 'kubectl get nodes', returnStatus: true)
                                 if (status == 0) {
                                     echo "✅ EKS cluster reachable"
                                 } else {
                                     echo "⚠️ EKS cluster unreachable"
                                 }
-                            #sh 'kubectl get svc --kubeconfig ~/.kube/config'
+                            # sh 'kubectl get svc --kubeconfig ~/.kube/config'
                             sh 'kubectl get pods'
                         } catch (Exception e) {
                             echo "❌ An error occurred: ${e.getMessage()}"
