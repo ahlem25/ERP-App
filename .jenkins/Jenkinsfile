@@ -757,7 +757,11 @@ def getServicePort(String serviceName) {
         "erp-dashboard-service": 8065,
         "erp-scheduler-service": 8066
     ]
-
+    // print the port map
+    println "🔍 Port map: ${portMap}"   
+    println "🔍 Service name: ${serviceName}"
+    println "🔍 Port: ${portMap.get(serviceName, 8080)}"
+    // Return the port for the service
     return portMap.get(serviceName, 8080)
 }
 
