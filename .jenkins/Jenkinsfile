@@ -575,8 +575,9 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
         echo "📦 ConfigMaps for ${baseServiceName}: ${configMaps}"
 
         // 4️⃣ Build envFrom YAML dynamically
-        def envFromYaml = configMaps.collect { cm ->
-            """  - configMapRef:
+        def envFromYaml = configMaps.collectWithIndex { cm, index ->
+            def indent = index == 0 ? "  " : "        "
+            """${indent}- configMapRef:
               name: ${cm}"""
         }.join('\n')
 
