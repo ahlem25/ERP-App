@@ -181,12 +181,10 @@ Pour chaque service, 2 repositories :
 - **Storage** : 20GB (max 100GB)
 - **Backup** : 7 jours de rétention
 
-### S3 Buckets
+### S3 Bucket
 - **Uploads Bucket** : Stockage des fichiers uploadés par les utilisateurs
-- **Temp Files Bucket** : Fichiers temporaires (suppression automatique après 7 jours)
-- **Access Logs Bucket** : Logs d'accès S3
-- **Chiffrement** : AES256 pour tous les buckets
-- **Versioning** : Activé pour le bucket uploads
+- **Chiffrement** : AES256
+- **Versioning** : Activé
 - **Lifecycle** : Transition automatique vers IA/Glacier pour optimiser les coûts
 
 ## 🔧 Configuration
@@ -212,7 +210,6 @@ terraform output s3_configuration
 # Récupérer des informations spécifiques
 terraform output s3_uploads_bucket_name
 terraform output s3_uploads_bucket_arn
-terraform output s3_temp_files_bucket_name
 ```
 
 #### Configuration dans votre application Spring Boot
@@ -225,8 +222,6 @@ aws:
   s3:
     region: eu-west-3
     uploads-bucket: erp-app-uploads-xxxxx
-    temp-files-bucket: erp-app-temp-files-xxxxx
-    access-logs-bucket: erp-app-s3-access-logs-xxxxx
 ```
 
 #### Permissions IAM
@@ -376,8 +371,8 @@ kubectl get pods
 - **EC2 Nodes (2x t3.medium)** : ~$60/mois
 - **RDS MySQL (db.t3.micro)** : ~$15/mois
 - **NAT Gateway** : ~$45/mois
-- **S3 Buckets** : ~$5-20/mois (selon le volume de données)
-- **Total estimé** : ~$198-213/mois
+- **S3 Bucket** : ~$5-15/mois (selon le volume de données)
+- **Total estimé** : ~$198-208/mois
 
 ## 🗑️ Destruction des Ressources
 

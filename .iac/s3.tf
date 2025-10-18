@@ -85,24 +85,6 @@ resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
   }
 }
 
-# Bucket pour les logs d'accès S3
-resource "aws_s3_bucket" "access_logs" {
-  bucket = "${var.project_name}-s3-access-logs-${random_id.cluster_suffix.hex}"
-
-  tags = merge(var.tags, {
-    Name        = "${var.project_name}-s3-access-logs"
-    Purpose     = "s3-access-logs"
-    Environment = "all"
-  })
-}
-
-# Configuration des logs d'accès
-resource "aws_s3_bucket_logging" "uploads" {
-  bucket = aws_s3_bucket.uploads.id
-
-  target_bucket = aws_s3_bucket.access_logs.id
-  target_prefix = "uploads/"
-}
 
 # Politique IAM pour permettre aux services EKS d'accéder au bucket S3
 resource "aws_iam_policy" "s3_uploads_access" {
@@ -139,49 +121,3 @@ resource "aws_iam_role_policy_attachment" "eks_nodes_s3_uploads" {
   role       = aws_iam_role.eks_nodes.name
 }
 
-# Bucket pour les fichiers temporaires (cache, processing)
-resource "aws_s3_bucket" "temp_files" {
-  bucket = "${var.project_name}-temp-files-${random_id.cluster_suffix.hex}"
-
-  tags = merge(var.tags, {
-    Name        = "${var.project_name}-temp-files"
-    Purpose     = "temporary-files"
-    Environment = "all"
-  })
-}
-
-# Configuration de suppression automatique pour les fichiers temporaires
-resource "aws_s3_bucket_lifecycle_configuration" "temp_files" {
-  bucket = aws_s3_bucket.temp_files.id
-
-  rule {
-    id     = "delete_temp_files"
-    status = "Enabled"
-
-    expiration {
-      days = 7  # Suppression après 7 jours
-    }
-  }
-}
-
-# Configuration de chiffrement pour le bucket temporaire
-resource "aws_s3_bucket_server_side_encryption_configuration" "temp_files" {
-  bucket = aws_s3_bucket.temp_files.id
-
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-    bucket_key_enabled = true
-  }
-}
-
-# Blocage d'accès public pour le bucket temporaire
-resource "aws_s3_bucket_public_access_block" "temp_files" {
-  bucket = aws_s3_bucket.temp_files.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
