@@ -603,27 +603,6 @@ spec:
         - containerPort: 8080
         envFrom:
         ${envFromYaml}
-        env:
-        #- name: SPRING_PROFILES_ACTIVE
-        #  valueFrom:
-        #    configMapKeyRef:
-        #      name: erp-global-config
-        #      key: SPRING_PROFILES_ACTIVE
-        #- name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-        #  valueFrom:
-        #    configMapKeyRef:
-        #      name: erp-global-config
-        #      key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-        #- name: SPRING_CLOUD_CONFIG_URI
-        #  valueFrom:
-        #    configMapKeyRef:
-        #      name: erp-global-config
-        #      key: SPRING_CLOUD_CONFIG_URI
-        #- name: JAVA_OPTS
-        #  valueFrom:
-        #    configMapKeyRef:
-        #      name: erp-global-config
-        #      key: JAVA_OPTS
         resources:
           requests:
             memory: "512Mi"
