@@ -455,7 +455,9 @@ def createOrUpdateConfigMap(String namespace) {
     try {
         echo "📦 Creating or updating ConfigMap in namespace ${namespace}..."
 
-        // Get port of services
+        // Get port of services with environment suffix
+        def configServiceName = "erp-config-${params.ENVIRONMENT}"
+        def serviceDiscoveryName = "erp-service-discovery-${params.ENVIRONMENT}"
         def configServicePort = getServicePort("erp-config")
         def serviceDiscoveryPort = getServicePort("erp-service-discovery")
 
@@ -490,10 +492,10 @@ data:
   SPRING_PROFILES_ACTIVE: "prd"
 
   # Eureka Configuration
-  EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://erp-service-discovery:${serviceDiscoveryPort}/eureka/"
+  EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://${serviceDiscoveryName}:${serviceDiscoveryPort}/eureka/"
 
   # Spring Cloud Config
-  SPRING_CLOUD_CONFIG_URI: "http://erp-config:${configServicePort}"
+  SPRING_CLOUD_CONFIG_URI: "http://${configServiceName}:${configServicePort}"
   
   # JVM Configuration
   JAVA_OPTS: "-Xmx400m -Xms200m"
