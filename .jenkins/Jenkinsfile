@@ -545,6 +545,11 @@ data:
 def createOrUpdateSecrets(String namespace) {
     try {
         echo "📦 Creating or updating Secrets in namespace ${namespace}..."
+        
+        // Encode password to base64
+        def password = "erp_password_2024"
+        def encodedPassword = sh(script: "echo -n '${password}' | base64", returnStdout: true).trim()
+        
         def secretsYaml = """
 apiVersion: v1
 kind: Secret
@@ -554,9 +559,10 @@ metadata:
   labels:
     app: erp-app
     environment: ${params.ENVIRONMENT}
+type: Opaque
 data:
   # Database Password (base64 encoded)
-  DB_PASSWORD: "erp_password_2024"
+  DB_PASSWORD: ${encodedPassword}
 """
 
         // Save YAML file and apply it
