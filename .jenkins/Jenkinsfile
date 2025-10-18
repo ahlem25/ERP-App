@@ -496,7 +496,7 @@ data:
   SPRING_CLOUD_CONFIG_URI: "http://erp-config:${configServicePort}"
   
   # JVM Configuration
-  JAVA_OPTS: "-Xmx1024m -Xms512m"
+  JAVA_OPTS: "-Xmx400m -Xms200m"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -629,7 +629,11 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
         def envFromYaml = envFromYamlList.join('\n')
 
 
-        // 5️⃣ Generate the final deployment YAML
+        // 5️⃣ Get the service port for health checks and container port
+        def servicePort = getServicePort(baseServiceName)
+        echo "🔍 Using port ${servicePort} for ${baseServiceName}"
+
+        // 6️⃣ Generate the final deployment YAML
         def deploymentYaml = """
 apiVersion: apps/v1
 kind: Deployment
@@ -655,26 +659,26 @@ spec:
       - name: ${serviceName}
         image: ${imageUrl}
         ports:
-        - containerPort: 8080
+        - containerPort: ${servicePort}
         envFrom:
         ${envFromYaml}
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: "256Mi"
+            cpu: "100m"
           limits:
-            memory: "1Gi"
-            cpu: "500m"
+            memory: "512Mi"
+            cpu: "200m"
         livenessProbe:
           httpGet:
             path: /actuator/health
-            port: 8080
+            port: ${servicePort}
           initialDelaySeconds: 60
           periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /actuator/health
-            port: 8080
+            port: ${servicePort}
           initialDelaySeconds: 30
           periodSeconds: 10
 """
@@ -718,7 +722,7 @@ spec:
     app: ${serviceName}
   ports:
   - port: ${port}
-    targetPort: 8080
+    targetPort: ${port}
     protocol: TCP
   type: ClusterIP
 """

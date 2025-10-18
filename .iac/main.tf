@@ -188,13 +188,13 @@ resource "aws_eks_node_group" "main" {
   node_role_arn   = aws_iam_role.eks_nodes.arn
   subnet_ids      = aws_subnet.public[*].id  # Utiliser les sous-réseaux publics
 
-  capacity_type  = "ON_DEMAND"
-  instance_types = ["t3.medium"]
+  capacity_type  = var.node_capacity_type
+  instance_types = var.node_instance_types
 
   scaling_config {
-    desired_size = 2
-    max_size     = 4
-    min_size     = 1
+    desired_size = var.node_desired_size
+    max_size     = var.node_max_size
+    min_size     = var.node_min_size
   }
 
   update_config {
