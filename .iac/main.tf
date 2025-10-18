@@ -6,6 +6,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.23"
+    }
   }
 }
 
@@ -14,24 +18,19 @@ provider "aws" {
   region = var.aws_region
 }
 
+# Configuration du provider Kubernetes
+provider "kubernetes" {
+  host                   = aws_eks_cluster.main.endpoint
+  cluster_ca_certificate = base64decode(aws_eks_cluster.main.certificate_authority[0].data)
+
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "aws"
+    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.main.name]
+  }
+}
+
 # Variables
-variable "aws_region" {
-  description = "AWS region"
-  type        = string
-  default     = "eu-west-3"
-}
-
-variable "environment" {
-  description = "Environment name"
-  type        = string
-  default     = "prod"
-}
-
-variable "project_name" {
-  description = "Project name"
-  type        = string
-  default     = "erp-app"
-}
 
 variable "vpc_cidr" {
   description = "CIDR block for VPC"
@@ -54,56 +53,50 @@ data "aws_caller_identity" "current" {}
 
 # VPC
 resource "aws_vpc" "main" {
-  cidr_block           = var.vpc_cidr
+  cidr_block           = "10.0.0.0/16"
   enable_dns_hostnames = true
   enable_dns_support   = true
 
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-vpc"
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-vpc"
+  })
 }
 
 # Internet Gateway
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-igw"
-    Environment = var.environment
-    Project     = var.project_name
-  }
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-igw"
+  })
 }
 
 # Public Subnets
 resource "aws_subnet" "public" {
-  count = length(var.availability_zones)
+  count = 3
 
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.${count.index + 1}.0/24"
-  availability_zone       = var.availability_zones[count.index]
+  availability_zone       = ["eu-west-3a", "eu-west-3b", "eu-west-3c"][count.index]
   map_public_ip_on_launch = true
 
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-public-subnet-${count.index + 1}"
-    Environment = var.environment
-    Project     = var.project_name
-    Type        = "public"
-  }
+  tags = merge(var.tags, {
+    Name = "${var.project_name}-public-subnet-${count.index + 1}"
+    Type = "public"
+  })
 }
 
 # Private Subnets
 resource "aws_subnet" "private" {
-  count = length(var.availability_zones)
+  count = 3
 
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.${count.index + 10}.0/24"
-  availability_zone = var.availability_zones[count.index]
+  availability_zone = ["eu-west-3a", "eu-west-3b", "eu-west-3c"][count.index]
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-private-subnet-${count.index + 1}"
-    Environment = var.environment
+    Name        = "${var.project_name}-private-subnet-${count.index + 1}"
+    Project = var.project_name
     Project     = var.project_name
     Type        = "private"
   }
@@ -119,8 +112,8 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-public-rt"
-    Environment = var.environment
+    Name        = "${var.project_name}-public-rt"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
@@ -133,30 +126,22 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# NAT Gateway
-resource "aws_eip" "nat" {
-  count = length(var.availability_zones)
-
-  domain = "vpc"
-
-  tags = {
-    Name        = "${var.project_name}-${var.environment}-nat-eip-${count.index + 1}"
-    Environment = var.environment
-    Project     = var.project_name
-  }
-
-  depends_on = [aws_internet_gateway.main]
+# NAT Gateway - Utiliser un EIP existant
+data "aws_eip" "existing" {
+  public_ip = "13.38.181.68"  # Utiliser un EIP existant
 }
 
-resource "aws_nat_gateway" "main" {
-  count = length(var.availability_zones)
+# Pas besoin de créer un nouvel EIP
 
-  allocation_id = aws_eip.nat[count.index].id
+resource "aws_nat_gateway" "main" {
+  count = 1  # Réduit de 3 à 1 pour économiser les EIP
+
+  allocation_id = data.aws_eip.existing.id
   subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-nat-gateway-${count.index + 1}"
-    Environment = var.environment
+    Name        = "${var.project_name}-nat-gateway-${count.index + 1}"
+    Project = var.project_name
     Project     = var.project_name
   }
 
@@ -165,7 +150,7 @@ resource "aws_nat_gateway" "main" {
 
 # Route Table for Private Subnets
 resource "aws_route_table" "private" {
-  count = length(var.availability_zones)
+  count = 1  # Réduit de 3 à 1 pour économiser les EIP
 
   vpc_id = aws_vpc.main.id
 
@@ -175,8 +160,8 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-private-rt-${count.index + 1}"
-    Environment = var.environment
+    Name        = "${var.project_name}-private-rt-${count.index + 1}"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
@@ -186,12 +171,12 @@ resource "aws_route_table_association" "private" {
   count = length(aws_subnet.private)
 
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
+  route_table_id = aws_route_table.private[0].id  # Utilise le seul NAT Gateway
 }
 
 # Security Groups
 resource "aws_security_group" "eks_cluster" {
-  name_prefix = "${var.project_name}-${var.environment}-eks-cluster-"
+  name_prefix = "${var.project_name}-eks-cluster-"
   vpc_id      = aws_vpc.main.id
 
   egress {
@@ -202,14 +187,14 @@ resource "aws_security_group" "eks_cluster" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-eks-cluster-sg"
-    Environment = var.environment
+    Name        = "${var.project_name}-eks-cluster-sg"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
 
 resource "aws_security_group" "eks_nodes" {
-  name_prefix = "${var.project_name}-${var.environment}-eks-nodes-"
+  name_prefix = "${var.project_name}-eks-nodes-"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -234,17 +219,22 @@ resource "aws_security_group" "eks_nodes" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-eks-nodes-sg"
-    Environment = var.environment
+    Name        = "${var.project_name}-eks-nodes-sg"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
 
+# Random ID pour éviter les conflits de noms
+resource "random_id" "cluster_suffix" {
+  byte_length = 4
+}
+
 # EKS Cluster
 resource "aws_eks_cluster" "main" {
-  name     = "${var.project_name}-${var.environment}-cluster"
+  name     = "${var.project_name}-cluster-${random_id.cluster_suffix.hex}"
   role_arn = aws_iam_role.eks_cluster.arn
-  version  = "1.28"
+  version  = "1.34"
 
   vpc_config {
     subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
@@ -260,16 +250,31 @@ resource "aws_eks_cluster" "main" {
   ]
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-cluster"
-    Environment = var.environment
+    Name        = "${var.project_name}-cluster"
     Project     = var.project_name
   }
+}
+
+# Kubernetes Namespaces
+resource "kubernetes_namespace" "environments" {
+  for_each = toset(var.environments)
+
+  metadata {
+    name = "erp-${each.key}"
+    labels = {
+      app         = "erp-app"
+      environment = each.key
+      project     = var.project_name
+    }
+  }
+
+  depends_on = [aws_eks_cluster.main]
 }
 
 # EKS Node Group
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
-  node_group_name = "${var.project_name}-${var.environment}-nodes"
+  node_group_name = "${var.project_name}-nodes"
   node_role_arn   = aws_iam_role.eks_nodes.arn
   subnet_ids      = aws_subnet.private[*].id
 
@@ -293,15 +298,15 @@ resource "aws_eks_node_group" "main" {
   ]
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-nodes"
-    Environment = var.environment
+    Name        = "${var.project_name}-nodes"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
 
 # IAM Roles
 resource "aws_iam_role" "eks_cluster" {
-  name = "${var.project_name}-${var.environment}-eks-cluster-role"
+  name = "${var.project_name}-eks-cluster-role"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -316,7 +321,7 @@ resource "aws_iam_role" "eks_cluster" {
 }
 
 resource "aws_iam_role" "eks_nodes" {
-  name = "${var.project_name}-${var.environment}-eks-nodes-role"
+  name = "${var.project_name}-eks-nodes-role"
 
   assume_role_policy = jsonencode({
     Statement = [{
@@ -372,14 +377,20 @@ locals {
     "erp-billing-service",
     "erp-sales-service",
     "erp-dashboard-service",
-    "erp-scheduler-service"
+    "erp-scheduler-service",
+    "erp-ui-service"
   ]
 }
 
+# ECR Repositories for each service (stages and releases)
 resource "aws_ecr_repository" "erp_services" {
-  for_each = toset(local.erp_services)
+  for_each = toset(flatten([
+    for service in local.erp_services : [
+      for repo_type in ["stages", "releases"] : "${service}-${repo_type}"
+    ]
+  ]))
 
-  name                 = "${each.key}-${var.environment}"
+  name                 = each.key
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -387,26 +398,26 @@ resource "aws_ecr_repository" "erp_services" {
   }
 
   tags = {
-    Name        = "${each.key}-${var.environment}"
-    Environment = var.environment
+    Name        = each.key
+    Type        = split("-", each.key)[1]  # Extract repo type (stages/releases)
     Project     = var.project_name
   }
 }
 
 # RDS MySQL Database
 resource "aws_db_subnet_group" "main" {
-  name       = "${var.project_name}-${var.environment}-db-subnet-group"
+  name       = "${var.project_name}-db-subnet-group"
   subnet_ids = aws_subnet.private[*].id
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-db-subnet-group"
-    Environment = var.environment
+    Name        = "${var.project_name}-db-subnet-group"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
 
 resource "aws_security_group" "rds" {
-  name_prefix = "${var.project_name}-${var.environment}-rds-"
+  name_prefix = "${var.project_name}-rds-"
   vpc_id      = aws_vpc.main.id
 
   ingress {
@@ -424,17 +435,17 @@ resource "aws_security_group" "rds" {
   }
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-rds-sg"
-    Environment = var.environment
+    Name        = "${var.project_name}-rds-sg"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
 
 resource "aws_db_instance" "mysql" {
-  identifier = "${var.project_name}-${var.environment}-mysql"
+  identifier = "${var.project_name}-mysql"
 
   engine         = "mysql"
-  engine_version = "8.0.35"
+  engine_version = "8.0.28"  # Version stable supportée dans eu-west-3
   instance_class = "db.t3.micro"
 
   allocated_storage     = 20
@@ -457,51 +468,9 @@ resource "aws_db_instance" "mysql" {
   deletion_protection = false
 
   tags = {
-    Name        = "${var.project_name}-${var.environment}-mysql"
-    Environment = var.environment
+    Name        = "${var.project_name}-mysql"
+    Project = var.project_name
     Project     = var.project_name
   }
 }
 
-# Outputs
-output "vpc_id" {
-  description = "VPC ID"
-  value       = aws_vpc.main.id
-}
-
-output "cluster_name" {
-  description = "EKS cluster name"
-  value       = aws_eks_cluster.main.name
-}
-
-output "cluster_endpoint" {
-  description = "EKS cluster endpoint"
-  value       = aws_eks_cluster.main.endpoint
-}
-
-output "cluster_security_group_id" {
-  description = "EKS cluster security group ID"
-  value       = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
-}
-
-output "node_security_group_id" {
-  description = "EKS node security group ID"
-  value       = aws_security_group.eks_nodes.id
-}
-
-output "ecr_repository_urls" {
-  description = "ECR repository URLs"
-  value = {
-    for service in local.erp_services : service => aws_ecr_repository.erp_services[service].repository_url
-  }
-}
-
-output "rds_endpoint" {
-  description = "RDS MySQL endpoint"
-  value       = aws_db_instance.mysql.endpoint
-}
-
-output "rds_port" {
-  description = "RDS MySQL port"
-  value       = aws_db_instance.mysql.port
-}
