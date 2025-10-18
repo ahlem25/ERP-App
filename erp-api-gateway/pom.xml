@@ -21,6 +21,7 @@
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <zuul.version>4.1.5</zuul.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <start-class>com.iss4u.erp.services.ERPAPIGatewayApplication</start-class>
     </properties>
 
     <dependencies>
@@ -57,5 +58,24 @@
         </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot.version}</version>
+                <configuration>
+                    <mainClass>${start-class}</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
     
 </project>

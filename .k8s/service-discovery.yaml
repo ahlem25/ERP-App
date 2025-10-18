@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: erp-service-discovery-deployment
+  namespace: erp-prod
+  labels:
+    app: erp-service-discovery
+    environment: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: erp-service-discovery
+  template:
+    metadata:
+      labels:
+        app: erp-service-discovery
+    spec:
+      containers:
+      - name: erp-service-discovery
+        image: erp-service-discovery:1.0.0-SNAPSHOT  # Sera remplacé par l'image ECR
+        ports:
+        - containerPort: 8013
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          valueFrom:
+            configMapKeyRef:
+              name: erp-config
+              key: SPRING_PROFILES_ACTIVE
+        - name: SPRING_CLOUD_CONFIG_URI
+          valueFrom:
+            configMapKeyRef:
+              name: erp-config
+              key: SPRING_CLOUD_CONFIG_URI
+        - name: JAVA_OPTS
+          valueFrom:
+            configMapKeyRef:
+              name: erp-config
+              key: JAVA_OPTS
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8013
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8013
+          initialDelaySeconds: 30
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: erp-service-discovery-service
+  namespace: erp-prod
+  labels:
+    app: erp-service-discovery
+    environment: production
+spec:
+  selector:
+    app: erp-service-discovery
+  ports:
+  - port: 8013
+    targetPort: 8013
+    protocol: TCP
+  type: LoadBalancer  # Exposé pour l'accès externe

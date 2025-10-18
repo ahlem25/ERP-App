@@ -1,0 +1,37 @@
+# Exemple de fichier de variables Terraform pour ERP App
+# Copiez ce fichier vers terraform.tfvars et modifiez les valeurs selon vos besoins
+
+# Configuration AWS
+aws_region = "eu-west-3"
+
+# Environnement
+environment = "prod"
+
+# Nom du projet
+project_name = "erp-app"
+
+# Configuration VPC
+vpc_cidr = "10.0.0.0/16"
+availability_zones = ["eu-west-3a", "eu-west-3b", "eu-west-3c"]
+
+# Configuration EKS
+eks_cluster_version = "1.28"
+node_instance_types = ["t3.medium"]
+node_desired_size = 2
+node_max_size = 4
+node_min_size = 1
+
+# Configuration RDS
+rds_instance_class = "db.t3.micro"
+rds_allocated_storage = 20
+rds_max_allocated_storage = 100
+rds_backup_retention_period = 7
+
+# Tags communs
+tags = {
+  Project     = "erp-app"
+  Environment = "prod"
+  ManagedBy   = "terraform"
+  Owner       = "devops-team"
+  CostCenter  = "engineering"
+}

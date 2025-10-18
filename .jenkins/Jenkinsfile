@@ -1,0 +1,674 @@
+def ecrServices = new HashMap()
+
+pipeline {
+    agent {
+        label {
+            label ''
+            customWorkspace("workspace/${env.JOB_NAME}")
+        }
+    }
+    parameters {
+        booleanParam(name: 'DEPLOY_TO_EKS', defaultValue: true, description: 'Used to deploy all services in AWS EKS.')
+        booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Used to skip tests.')
+        booleanParam(name: 'SKIP_SONARQUBE', defaultValue: true, description: 'Used to skip SonarQube analysis.')
+        choice(name: 'ENVIRONMENT', choices: ['dev', 'test', 'pprd', 'prod'], description: 'Select the environment')
+    }
+    environment {
+        ECR_PRIVATE_REGISTRY_URL = "590184116223.dkr.ecr.eu-west-3.amazonaws.com"
+        AWS_DEFAULT_REGION = "eu-west-3"
+        CREDENTIALS_ID = "aws-credentials"
+        EKS_CLUSTER = "erp-app-cluster"
+        EKS_NAMESPACE = "erp-${params.ENVIRONMENT}"
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: "10"))
+        timeout(time: 1, unit: 'HOURS')
+        disableConcurrentBuilds()
+        skipStagesAfterUnstable()
+        ansiColor('xterm')
+        timestamps()
+    }
+
+    stages {
+        stage('Initialisation') {
+            steps {
+                script {
+                    echo 'Step 1: Retrieving changelist and revision numbers from POM file'
+                    env.REVISION = readMavenPom().getProperties().getProperty("revision")
+                    env.CHANGELIST = readMavenPom().getProperties().getProperty("changelist")
+
+                    if (env.CHANGELIST == "-SNAPSHOT") {
+                        env.DOCKER_REG_ENV = 'stages'
+                        if (env.BRANCH_NAME.contains('RC_') || env.BRANCH_NAME.contains('hotfix_')) {
+                            // We're on a branch destined to be delivered
+                            env.POM_VERSION = "${env.REVISION}${env.CHANGELIST}"
+                        } else {
+                            // We're on a separate branch in snapshot, use the branch name
+                            env.POM_VERSION = "${env.BRANCH_NAME}${env.CHANGELIST}".replace('/','_')
+                        }
+                    } else if (env.CHANGELIST == "-RELEASE") {
+                        env.DOCKER_REG_ENV = 'releases'
+                        if (env.BRANCH_NAME.contains('RC_') || env.BRANCH_NAME.contains('hotfix_')) {
+                            env.POM_VERSION = "${env.REVISION}${env.CHANGELIST}"
+                        } else {
+                            error "The branch cannot be a RELEASE branch, please create a RC_ or a hotfix_"
+                        }
+                    } else {
+                        error "The changelist must be either -SNAPSHOT or -RELEASE"
+                    }
+
+                    echo "✅ This version is: ${env.POM_VERSION}"
+                    withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${CREDENTIALS_ID}"]]) {
+                        try{
+                            loginToAWSAndECR(env.AWS_DEFAULT_REGION, env.ECR_PRIVATE_REGISTRY_URL)
+                            echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
+                            sh 'rm -rf ~/.kube/cache ~/.aws/cli/cache ~/.kube/config'
+                            // sh 'kubectl config view'
+                            updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
+                            // sh 'kubectl config view'
+                            // sh 'aws eks get-token --region eu-west-3 --cluster-name erp-app-cluster'
+                            // sh 'aws sts get-caller-identity'
+                            // sh 'kubectl config view'
+                            // sh 'kubectl config current-context'
+                                def status = sh(script: 'kubectl get nodes', returnStatus: true)
+                                if (status == 0) {
+                                    echo "✅ EKS cluster reachable"
+                                } else {
+                                    echo "⚠️ EKS cluster unreachable"
+                                }
+                            // sh 'kubectl get svc --kubeconfig ~/.kube/config'
+                            sh 'kubectl get pods'
+                        } catch (Exception e) {
+                            echo "❌ An error occurred: ${e.getMessage()}"
+                            throw e
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building the ERP project...'
+                sh "mvn -am -amd versions:set -DnewVersion=${env.POM_VERSION}"
+                sh "mvn -am -amd clean install -DskipTests"
+            }
+        }
+
+        stage('Unit Test') {
+            when {
+                expression { return !params.SKIP_TESTS }
+            }
+            steps {
+                echo 'Running unit tests...'
+                sh "mvn clean test -Dtest=**/*UT.java"
+            }
+            post {
+                always {
+                    script {
+                        try {
+                            // Collects unit test reports
+                            junit '**/target/surefire-reports/*.xml'
+                            // Generate and archive the unit test report in HTML
+                            sh 'mvn surefire-report:report'
+                            archiveArtifacts artifacts: 'target/site/*.html', fingerprint: true
+                        } catch (Exception e) {
+                            echo "No test reports found. Skipping test results publishing."
+                        }
+                    }
+                }
+                failure {
+                    echo 'Unit tests failed!'
+                }
+            }
+        }
+
+        stage('Integration Test') {
+            when {
+                expression { return !params.SKIP_TESTS }
+            }
+            steps {
+                echo 'Running integration tests...'
+                sh "mvn -DskipUTs -DfailIfNoTests=false -Dgroups=IT verify -Dincludes=**/*IT.java -Dfailsafe.includes=**/*IT.java"
+            }
+            post {
+                always {
+                    script {
+                        try {
+                            // Collects integration test reports
+                            junit '**/target/failsafe-reports/*.xml'
+                            // Generate and archive the integration test report in HTML
+                            sh 'mvn failsafe:report'
+                            archiveArtifacts artifacts: 'target/site/*.html', fingerprint: true
+                        } catch (Exception e) {
+                            echo "No test reports found. Skipping test results publishing."
+                        }
+                    }
+                }
+                failure {
+                    echo 'Integration tests failed!'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            when {
+                expression { return !params.SKIP_SONARQUBE }
+            }
+            steps {
+                script {
+                    echo 'Running static code analysis...'
+                    try{
+						sh "mvn clean verify sonar:sonar \
+                      -Dsonar.projectKey=erp-backend \
+                      -Dsonar.host.url=http://13.38.181.68:9000 \
+                      -Dsonar.login=06349f961e402982d41a1409dd533a32192ab729"
+                    }catch (Exception e) {
+                        echo "SonarQube scan impossible."
+                    }
+                }
+            }
+        }
+
+        stage('Build & push images') {
+            steps {
+                script {
+                    echo 'Find Jar files for ERP services...'
+                    def erp_services = [
+                        "erp-service-discovery",
+                        "erp-config",
+                        "erp-api-gateway",
+                        "erp-user-service",
+                        "erp-product-service",
+                        "erp-inventory-service",
+                        "erp-supplier-service",
+                        "erp-order-service",
+                        "erp-client-service",
+                        "erp-payment-service",
+                        "erp-billing-service",
+                        "erp-sales-service",
+                        "erp-dashboard-service",
+                        "erp-scheduler-service"
+                    ]
+
+                    def jar_files = []
+                    erp_services.each { service ->
+                        sh(script: """find ./${service}/ -name '*.jar'""", returnStdout: true).trim().split('\n').each { jar_files << it }
+                    }
+
+                    echo 'Building, tagging & Push the Docker Image to AWS private registry (AWS ECR) ...'
+                    def dockerTasks = jar_files.collectEntries{jar_file -> ["${jar_file.split('/')[1]}": {
+                        def service_name = jar_file.split('/')[1]
+                        def jar_file_path = jar_file.split('/' + service_name)[1]
+                        def ecrRepoName = "${service_name}-${env.DOCKER_REG_ENV}"
+                        def ecrRepoURL = "${env.ECR_PRIVATE_REGISTRY_URL}/${ecrRepoName}"
+                        ensureEcrRepositoryExists("${ecrRepoName}")
+                        echo "🚀 Building Docker image for ${service_name} ..."
+                        sh "docker build -t '${ecrRepoURL}:${env.POM_VERSION}' -f ./Dockerfile --no-cache --build-arg JAR_FILE=${jar_file_path} ./${service_name}"
+                        echo "pushing image ${service_name}:${env.POM_VERSION}"
+                        deleteImageWithSameTagBeforePushDocker(env.AWS_DEFAULT_REGION, ecrRepoURL, ecrRepoName, env.POM_VERSION)
+                        sh "docker push '${ecrRepoURL}:${env.POM_VERSION}'"
+                        echo "✅ ${service_name} has been pushed to ECR repository."
+                        ecrServices.put(service_name, "${ecrRepoURL}:${env.POM_VERSION}")
+                        }]
+                    }
+                    parallel dockerTasks
+                }
+            }
+        }
+
+        stage('Check/Create EKS Namespace') {
+            when {
+                expression { return params.DEPLOY_TO_EKS }
+            }
+            steps {
+                script {
+                    // Ensure kubeconfig is set for the target cluster
+                    echo "🔍 Checking if namespace ${env.EKS_NAMESPACE} exists..."
+                    def namespaceExists = sh(
+                        script: "kubectl get namespace ${env.EKS_NAMESPACE} 2>/dev/null",
+                        returnStatus: true
+                    )
+
+                    if (namespaceExists != 0) {
+                        echo "⚡ Creating namespace ${env.EKS_NAMESPACE}..."
+                        sh "kubectl create namespace ${env.EKS_NAMESPACE}"
+                        echo "✅ Namespace ${env.EKS_NAMESPACE} created successfully."
+                    } else {
+                        echo "✅ Namespace ${env.EKS_NAMESPACE} already exists."
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            when {
+                expression { return params.DEPLOY_TO_EKS }
+            }
+            steps {
+                script {
+                    try {
+                        echo "🔄 Start deploying ERP services to EKS."
+                        echo "⚙️ Step 1: Applying shared ConfigMap to namespace ${env.EKS_NAMESPACE}..."
+                        createOrUpdateConfigMap(env.EKS_NAMESPACE)
+                        echo "⚙️ Step 2: Deploy all microservice (create deployment & service) to namespace ${env.EKS_NAMESPACE}..."
+                        println ecrServices
+                        ecrServices.each { service, imageUrl ->
+                            println "$service: $imageUrl"
+                            def serviceName = "${service}-${params.ENVIRONMENT}"
+                            def deploymentName = "${serviceName}-deployment"
+
+                            // Create or update deployment
+                            createOrUpdateKubernetesDeployment(serviceName, imageUrl, env.EKS_NAMESPACE)
+
+                            // Create or update service
+                            createOrUpdateKubernetesService(serviceName, env.EKS_NAMESPACE)
+
+                            echo "🔄 Deploying EKS service: ${serviceName}"
+                        }
+                        echo "✅ All ERP services have been deployed successfully."
+                    } catch (Exception e) {
+                        echo "❌ Deployment failed! Initiating rollback..."
+                        error("Deployment failed. Check logs for details.")
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            script{
+                if (getContext(hudson.FilePath)) {
+                    // Suppression du workspace jenkins
+                    deleteDir()
+                    // Clean up the Docker system in order to tackle it.
+                    sh "docker image ls"
+                    sh("sudo sh -c 'yes | docker system prune -a'")
+                }
+            }
+        }
+    }
+}
+
+def loginToAWSAndECR(String awsRegion, String ecrRepo){
+    try{
+        // Execute shell commands for AWS authentication and Docker login
+        sh """
+            echo "🔐 Logging in to AWS ECR..."
+            aws ecr get-login-password --region ${awsRegion} | docker login --username AWS --password-stdin ${ecrRepo}
+        """
+        println "✅ Successfully logged in to AWS ECR (${ecrRepo})"
+
+    }catch (Exception e) {
+        println "⚠️ Error: ${e.message}"
+    }
+}
+
+def ensureEcrRepositoryExists(String repoName) {
+    try {
+        def awsRegion = env.AWS_DEFAULT_REGION  ?: "eu-west-3"
+        def ecrRepoBase = env.ECR_PRIVATE_REGISTRY_URL ?: "590184116223.dkr.ecr.eu-west-3.amazonaws.com"
+
+        echo "🔍 Checking if ECR repository '${repoName}' exists..."
+
+        def checkRepoCmd = "aws ecr describe-repositories --repository-names ${repoName} --region ${awsRegion} 2>/dev/null"
+        def checkRepoStatus = sh(script: checkRepoCmd, returnStatus: true)
+
+        if (checkRepoStatus == 0) {
+            echo "✅ ECR repository '${repoName}' already exists."
+        } else {
+            echo "⚠️ Repository '${repoName}' not found. Creating it now..."
+            sh """
+                aws ecr create-repository --repository-name ${repoName} --region ${awsRegion}
+            """
+            echo "🎉 Repository '${repoName}' created successfully!"
+        }
+    } catch (Exception e) {
+        error "❌ Error: ${e.message}"
+    }
+}
+
+def deleteImageWithSameTagBeforePushDocker(String awsRegion, String ecrRepoURL, String ecrRepoName, String imageTag) {
+    try {
+        echo "🔍 Checking if image '${ecrRepoURL}:${imageTag}' exists in ECR..."
+        def imageExists = sh(
+            script: "aws ecr describe-images --repository-name ${ecrRepoName} --image-ids imageTag=${imageTag} --region ${awsRegion} 2>/dev/null",
+            returnStatus: true
+        )
+
+        if (imageExists == 0) {
+            echo "⚠️ Image '${ecrRepoURL}:${imageTag}' already exists. Deleting..."
+            sh "aws ecr batch-delete-image --repository-name ${ecrRepoName} --image-ids imageTag=${imageTag} --region ${awsRegion}"
+            echo "✅ '${ecrRepoURL}:${imageTag}' image has been deleted successfully."
+        } else {
+            echo "✅ No existing image found. Proceeding with push."
+        }
+
+    } catch (Exception e) {
+        error "❌ Error: ${e.message}"
+    }
+}
+
+def updateKubeconfig(String awsRegion, String clusterName) {
+    try {
+        echo "🔄 Updating kubeconfig for cluster: ${clusterName}..."
+
+        // 1️⃣ Mise à jour du kubeconfig
+        sh """
+            aws eks update-kubeconfig \
+                --region ${awsRegion} \
+                --name ${clusterName} \
+                --alias ${clusterName}
+        """
+
+        // 2️⃣ Correction du chemin du binaire AWS et de l’API version
+        sh '''
+        AWS_PATH=$(which aws)
+        echo "🧩 AWS CLI path detected: $AWS_PATH"
+
+        # Remplace la commande AWS dans kubeconfig par son chemin absolu
+        sed -i "s|command: aws|command: ${AWS_PATH}|" ~/.kube/config
+
+        # Force la version API à v1 (plus stable que v1beta1)
+        sed -i "s|client.authentication.k8s.io/v1beta1|client.authentication.k8s.io/v1|" ~/.kube/config
+
+        echo "🧩 Patching kubeconfig to add interactiveMode: IfAvailable..."
+        sed -i '/command: .*aws/a\\      interactiveMode: IfAvailable' /var/lib/jenkins/.kube/config
+
+        # cat /var/lib/jenkins/.kube/config
+        # kubectl config view
+
+        echo "✅ kubeconfig successfully patched!"
+        '''
+
+        // 3️⃣ Vérifications de l’environnement et des permissions
+        sh '''
+        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        export AWS_DEFAULT_REGION=eu-west-3
+        export PATH=$PATH:/usr/local/bin
+
+        echo "🔍 Vérification d’accès à AWS et EKS..."
+        aws sts get-caller-identity
+        kubectl config current-context
+        '''
+
+        echo "✅ Kubeconfig ready for use with kubectl."
+    } catch (Exception e) {
+        error "❌ Failed to update kubeconfig: ${e.message}"
+    }
+}
+
+def createOrUpdateConfigMap(String namespace) {
+    try {
+        echo "📦 Creating or updating ConfigMap in namespace ${namespace}..."
+
+        // Get port of services
+        def configServicePort = getServicePort("erp-config")
+        def serviceDiscoveryPort = getServicePort("erp-service-discovery")
+
+        // Example shared ConfigMap (customize as needed)
+        def configMapYaml = """
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-config-service
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Spring Profile Configuration
+  SPRING_PROFILES_ACTIVE: "prd"
+  # JVM Configuration
+  JAVA_OPTS: "-Xmx512m -Xms256m"
+  # Désactiver la configuration Git pour éviter les problèmes de permissions
+  SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: master
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-global-config
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Spring Configuration
+  SPRING_PROFILES_ACTIVE: "prd"
+
+  # Eureka Configuration
+  EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://erp-service-discovery:${serviceDiscoveryPort}/eureka/"
+
+  # Spring Cloud Config
+  SPRING_CLOUD_CONFIG_URI: "http://erp-config:${configServicePort}"
+  
+  # JVM Configuration
+  JAVA_OPTS: "-Xmx1024m -Xms512m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-database-config
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Database Configuration
+  # DB_URL: "jdbc:mysql://mysql-service:3306/erp_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+  # DB_USERNAME: "admin"
+
+  DB_URL: "jdbc:mysql://mysql-erp-dev-service:3306/erp_db?useSSL=false"
+  DB_USERNAME: "admin"
+  DB_PASSWORD: "erp_password_2024"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-keycloak-config
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Keycloak Configuration
+  KEYCLOAK_URL: "http://keycloak-service:8080"
+  KEYCLOAK_REALM: "erp-realm"
+  KEYCLOAK_CLIENT_ID: "erp-client"
+  KEYCLOAK_CLIENT_SECRET: "your-client-secret"
+  KEYCLOAK_ADMIN_USERNAME: "admin"
+  KEYCLOAK_ADMIN_PASSWORD: "passw0rd"
+"""
+
+        // Save YAML file and apply it
+        writeFile file: "erp-configmap.yaml", text: configMapYaml
+        sh "kubectl apply -f erp-configmap.yaml"
+
+        echo "✅ ConfigMap applied successfully!"
+    } catch (Exception e) {
+        echo "❌ Error while applying ConfigMap: ${e.getMessage()}"
+        throw e
+    }
+}
+
+
+def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, String namespace) {
+    try {
+        echo "🔄 Creating/Updating Kubernetes deployment for ${serviceName}..."
+        // 1️⃣ Define which ConfigMaps are used by which microservice
+        def serviceConfigMapMapping = [
+            "erp-config"            : ["erp-config-service"],
+            "erp-service-discovery" : ["erp-global-config"],
+            "erp-api-gateway"       : ["erp-global-config"],
+            "erp-user-service"      : ["erp-global-config", "erp-database-config",  "erp-keycloak-config"],
+            "erp-product-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-inventory-service" : ["erp-global-config", "erp-database-config"],
+            "erp-supplier-service"  : ["erp-global-config", "erp-database-config"],
+            "erp-order-service"     : ["erp-global-config", "erp-database-config"],
+            "erp-client-service"    : ["erp-global-config", "erp-database-config"],
+            "erp-payment-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-billing-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-sales-service"     : ["erp-global-config", "erp-database-config"],
+            "erp-dashboard-service" : ["erp-global-config", "erp-database-config"],
+            "erp-scheduler-service" : ["erp-global-config", "erp-database-config"]
+        ]
+
+        // 2️⃣ Default to global config if service not explicitly mapped
+        def configMaps = serviceConfigMapMapping.get(serviceName, ["erp-global-config"])
+
+        // 3️⃣ Build envFrom YAML dynamically
+        def envFromYaml = configMaps.collect { cm ->
+            """          - configMapRef:
+              name: ${cm}"""
+        }.join('\n')
+
+
+        // 4️⃣ Generate the final deployment YAML
+        def deploymentYaml = """
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ${serviceName}-deployment
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+    version: ${env.POM_VERSION}
+    managed-by: jenkins
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ${serviceName}
+  template:
+    metadata:
+      labels:
+        app: ${serviceName}
+    spec:
+      containers:
+      - name: ${serviceName}
+        image: ${imageUrl}
+        ports:
+        - containerPort: 8080
+        envFrom:
+        ${envFromYaml}
+        env:
+        #- name: SPRING_PROFILES_ACTIVE
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: SPRING_PROFILES_ACTIVE
+        #- name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+        #- name: SPRING_CLOUD_CONFIG_URI
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: SPRING_CLOUD_CONFIG_URI
+        #- name: JAVA_OPTS
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: JAVA_OPTS
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+"""
+
+        // Save deployment YAML to file
+        writeFile file: "${serviceName}-deployment.yaml", text: deploymentYaml
+
+        // Apply deployment
+        sh "kubectl apply -f ${serviceName}-deployment.yaml"
+
+        echo "✅ Deployment ${serviceName}-deployment created/updated successfully!"
+
+    } catch (Exception e) {
+        echo "❌ Error creating deployment: ${e.message}"
+        throw e
+    }
+}
+
+def createOrUpdateKubernetesService(String serviceName, String namespace) {
+    try {
+        echo "🔄 Creating/Updating Kubernetes service for ${serviceName}..."
+
+        // Get port from service name
+        def port = getServicePort(serviceName)
+
+        def serviceYaml = """
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${serviceName}
+  namespace: ${namespace}
+  labels:
+    app: ${serviceName}
+    environment: ${params.ENVIRONMENT}
+    version: ${env.POM_VERSION}
+    managed-by: jenkins
+spec:
+  selector:
+    app: ${serviceName}
+  ports:
+  - port: ${port}
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP
+"""
+
+        // Save service YAML to file
+        writeFile file: "${serviceName}-service.yaml", text: serviceYaml
+
+        // Apply service
+        sh "kubectl apply -f ${serviceName}-service.yaml"
+
+        echo "✅ Service ${serviceName}-service created/updated successfully!"
+
+    } catch (Exception e) {
+        echo "❌ Error creating service: ${e.message}"
+        throw e
+    }
+}
+
+def getServicePort(String serviceName) {
+    def portMap = [
+        "erp-service-discovery": 8013,
+        "erp-config": 8012,
+        "erp-api-gateway": 8014,
+        "erp-user-service": 8055,
+        "erp-product-service": 8051,
+        "erp-inventory-service": 8059,
+        "erp-supplier-service": 8052,
+        "erp-order-service": 8053,
+        "erp-client-service": 8058,
+        "erp-payment-service": 8069,
+        "erp-billing-service": 8057,
+        "erp-sales-service": 8060,
+        "erp-dashboard-service": 8065,
+        "erp-scheduler-service": 8066
+    ]
+
+    return portMap.get(serviceName, 8080)
+}

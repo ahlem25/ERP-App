@@ -1,11 +1,10 @@
 spring:
-  config:
-    import: "configserver:http://localhost:8012"
   application:
     name: erp-api-gateway-service
-  profiles:
-    active: dev
   cloud:
     config:
-      profile: ${spring.profiles.active}
+      uri: ${SPRING_CLOUD_CONFIG_URI:http://localhost:8012}
+      profile: ${SPRING_PROFILES_ACTIVE:dev}
+  config:
+    import: "configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8012}"
 
