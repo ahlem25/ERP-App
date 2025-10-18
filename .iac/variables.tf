@@ -34,3 +34,9 @@ variable "tags" {
   }
 }
 
+variable "eks_version" {
+  description = "Version du cluster EKS"
+  type        = string
+  default     = "1.28"
+}
+

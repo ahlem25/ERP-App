@@ -49,6 +49,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
     id     = "transition_to_ia"
     status = "Enabled"
 
+    filter {
+      prefix = ""
+    }
+
     transition {
       days          = 30
       storage_class = "STANDARD_IA"
@@ -68,6 +72,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "uploads" {
   rule {
     id     = "delete_old_versions"
     status = "Enabled"
+
+    filter {
+      prefix = ""
+    }
 
     noncurrent_version_transition {
       noncurrent_days = 30

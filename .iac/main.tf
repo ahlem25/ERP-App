@@ -126,53 +126,9 @@ resource "aws_route_table_association" "public" {
   route_table_id = aws_route_table.public.id
 }
 
-# NAT Gateway - Utiliser un EIP existant
-data "aws_eip" "existing" {
-  public_ip = "13.38.181.68"  # Utiliser un EIP existant
-}
-
-# Pas besoin de créer un nouvel EIP
-
-resource "aws_nat_gateway" "main" {
-  count = 1  # Réduit de 3 à 1 pour économiser les EIP
-
-  allocation_id = data.aws_eip.existing.id
-  subnet_id     = aws_subnet.public[count.index].id
-
-  tags = {
-    Name        = "${var.project_name}-nat-gateway-${count.index + 1}"
-    Project = var.project_name
-    Project     = var.project_name
-  }
-
-  depends_on = [aws_internet_gateway.main]
-}
-
-# Route Table for Private Subnets
-resource "aws_route_table" "private" {
-  count = 1  # Réduit de 3 à 1 pour économiser les EIP
-
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.main[count.index].id
-  }
-
-  tags = {
-    Name        = "${var.project_name}-private-rt-${count.index + 1}"
-    Project = var.project_name
-    Project     = var.project_name
-  }
-}
-
-# Route Table Association for Private Subnets
-resource "aws_route_table_association" "private" {
-  count = length(aws_subnet.private)
-
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[0].id  # Utilise le seul NAT Gateway
-}
+# NAT Gateway et EIP supprimés pour économiser les coûts
+# Les nœuds EKS sont maintenant dans les sous-réseaux publics
+# et n'ont pas besoin de NAT Gateway pour accéder à Internet
 
 # Security Groups
 resource "aws_security_group" "eks_cluster" {
@@ -234,7 +190,7 @@ resource "random_id" "cluster_suffix" {
 resource "aws_eks_cluster" "main" {
   name     = "${var.project_name}-cluster-${random_id.cluster_suffix.hex}"
   role_arn = aws_iam_role.eks_cluster.arn
-  version  = "1.34"
+  version  = var.eks_version
 
   vpc_config {
     subnet_ids              = concat(aws_subnet.public[*].id, aws_subnet.private[*].id)
@@ -276,7 +232,7 @@ resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.project_name}-nodes"
   node_role_arn   = aws_iam_role.eks_nodes.arn
-  subnet_ids      = aws_subnet.private[*].id
+  subnet_ids      = aws_subnet.public[*].id  # Utiliser les sous-réseaux publics
 
   capacity_type  = "ON_DEMAND"
   instance_types = ["t3.medium"]

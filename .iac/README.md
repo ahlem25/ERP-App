@@ -370,9 +370,8 @@ kubectl get pods
 - **EKS Cluster** : ~$73/mois
 - **EC2 Nodes (2x t3.medium)** : ~$60/mois
 - **RDS MySQL (db.t3.micro)** : ~$15/mois
-- **NAT Gateway** : ~$45/mois
 - **S3 Bucket** : ~$5-15/mois (selon le volume de données)
-- **Total estimé** : ~$198-208/mois
+- **Total estimé** : ~$153-163/mois
 
 ## 🗑️ Destruction des Ressources
 
