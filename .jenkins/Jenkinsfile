@@ -569,7 +569,7 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
 
         // 3️⃣ Build envFrom YAML dynamically
         def envFromYaml = configMaps.collect { cm ->
-            """        - configMapRef:
+            """  - configMapRef:
               name: ${cm}"""
         }.join('\n')
 
