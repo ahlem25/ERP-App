@@ -564,17 +564,22 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
             "erp-scheduler-service" : ["erp-global-config", "erp-database-config"]
         ]
 
-        // 2️⃣ Default to global config if service not explicitly mapped
-        def configMaps = serviceConfigMapMapping.get(serviceName, ["erp-global-config"])
+        // 2️⃣ Extract service name without environment suffix
+        def baseServiceName = serviceName.replaceAll("-${params.ENVIRONMENT}$", "")
+        echo "🔍 Base service name: ${baseServiceName} (from ${serviceName})"
+        
+        // 3️⃣ Default to global config if service not explicitly mapped
+        def configMaps = serviceConfigMapMapping.get(baseServiceName, ["erp-global-config"])
+        echo "📦 ConfigMaps for ${baseServiceName}: ${configMaps}"
 
-        // 3️⃣ Build envFrom YAML dynamically
+        // 4️⃣ Build envFrom YAML dynamically
         def envFromYaml = configMaps.collect { cm ->
             """  - configMapRef:
               name: ${cm}"""
         }.join('\n')
 
 
-        // 4️⃣ Generate the final deployment YAML
+        // 5️⃣ Generate the final deployment YAML
         def deploymentYaml = """
 apiVersion: apps/v1
 kind: Deployment
