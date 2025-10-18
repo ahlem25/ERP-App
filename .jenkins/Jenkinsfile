@@ -259,19 +259,61 @@ pipeline {
                         echo "⚙️ Step 1: Applying shared ConfigMap to namespace ${env.EKS_NAMESPACE}..."
                         createOrUpdateConfigMap(env.EKS_NAMESPACE)
                         echo "⚙️ Step 2: Deploy all microservice (create deployment & service) to namespace ${env.EKS_NAMESPACE}..."
-                        println ecrServices
-                        ecrServices.each { service, imageUrl ->
-                            println "$service: $imageUrl"
-                            def serviceName = "${service}-${params.ENVIRONMENT}"
-                            def deploymentName = "${serviceName}-deployment"
+                        
+                        // Handle case when build is skipped
+                        if (params.SKIP_BUILD) {
+                            echo "⚠️ Build skipped - using existing images from ECR..."
+                            def erp_services = [
+                                "erp-service-discovery",
+                                "erp-config",
+                                "erp-api-gateway",
+                                "erp-user-service",
+                                "erp-product-service",
+                                "erp-inventory-service",
+                                "erp-supplier-service",
+                                "erp-order-service",
+                                "erp-client-service",
+                                "erp-payment-service",
+                                "erp-billing-service",
+                                "erp-sales-service",
+                                "erp-dashboard-service",
+                                "erp-scheduler-service"
+                            ]
+                            
+                            // Use latest available images from ECR
+                            erp_services.each { service ->
+                                def ecrRepoName = "${service}-${env.DOCKER_REG_ENV}"
+                                def ecrRepoURL = "${env.ECR_PRIVATE_REGISTRY_URL}/${ecrRepoName}"
+                                def serviceName = "${service}-${params.ENVIRONMENT}"
+                                
+                                // Try to get the latest image tag, fallback to latest if not found
+                                def latestTag = getLatestImageTag(ecrRepoName, env.AWS_DEFAULT_REGION)
+                                def imageUrl = "${ecrRepoURL}:${latestTag}"
+                                
+                                echo "🔄 Deploying EKS service: ${serviceName} with image: ${imageUrl}"
+                                
+                                // Create or update deployment
+                                createOrUpdateKubernetesDeployment(serviceName, imageUrl, env.EKS_NAMESPACE)
+                                
+                                // Create or update service
+                                createOrUpdateKubernetesService(serviceName, env.EKS_NAMESPACE)
+                            }
+                        } else {
+                            // Normal deployment with built images
+                            println ecrServices
+                            ecrServices.each { service, imageUrl ->
+                                println "$service: $imageUrl"
+                                def serviceName = "${service}-${params.ENVIRONMENT}"
+                                def deploymentName = "${serviceName}-deployment"
 
-                            // Create or update deployment
-                            createOrUpdateKubernetesDeployment(serviceName, imageUrl, env.EKS_NAMESPACE)
+                                // Create or update deployment
+                                createOrUpdateKubernetesDeployment(serviceName, imageUrl, env.EKS_NAMESPACE)
 
-                            // Create or update service
-                            createOrUpdateKubernetesService(serviceName, env.EKS_NAMESPACE)
+                                // Create or update service
+                                createOrUpdateKubernetesService(serviceName, env.EKS_NAMESPACE)
 
-                            echo "🔄 Deploying EKS service: ${serviceName}"
+                                echo "🔄 Deploying EKS service: ${serviceName}"
+                            }
                         }
                         echo "✅ All ERP services have been deployed successfully."
                     } catch (Exception e) {
@@ -680,4 +722,33 @@ def getServicePort(String serviceName) {
     ]
 
     return portMap.get(serviceName, 8080)
+}
+
+def getLatestImageTag(String repoName, String awsRegion) {
+    try {
+        echo "🔍 Getting latest image tag for repository: ${repoName}"
+        
+        // Get the latest image by creation date
+        def latestImageCmd = """
+            aws ecr describe-images \
+                --repository-name ${repoName} \
+                --region ${awsRegion} \
+                --query 'sort_by(imageDetails,&imagePushedAt)[-1].imageTags[0]' \
+                --output text 2>/dev/null
+        """
+        
+        def latestTag = sh(script: latestImageCmd, returnStdout: true).trim()
+        
+        if (latestTag && latestTag != "None") {
+            echo "✅ Found latest image tag: ${latestTag}"
+            return latestTag
+        } else {
+            echo "⚠️ No images found in repository ${repoName}, using 'latest' as fallback"
+            return "latest"
+        }
+        
+    } catch (Exception e) {
+        echo "⚠️ Error getting latest image tag: ${e.message}, using 'latest' as fallback"
+        return "latest"
+    }
 }
