@@ -25,10 +25,10 @@ output "internet_gateway_id" {
   value       = aws_internet_gateway.main.id
 }
 
-output "nat_gateway_ids" {
-  description = "IDs des NAT Gateways"
-  value       = aws_nat_gateway.main[*].id
-}
+# output "nat_gateway_ids" {
+#   description = "IDs des NAT Gateways"
+#   value       = aws_nat_gateway.main[*].id
+# }
 
 # EKS Outputs
 output "cluster_name" {
@@ -91,33 +91,33 @@ output "ecr_repository_arns" {
   }
 }
 
-# RDS Outputs
-output "rds_endpoint" {
-  description = "Endpoint RDS MySQL"
-  value       = aws_db_instance.mysql.endpoint
-}
+# RDS Outputs - COMMENTÉS TEMPORAIREMENT
+# output "rds_endpoint" {
+#   description = "Endpoint RDS MySQL"
+#   value       = aws_db_instance.mysql.endpoint
+# }
 
-output "rds_port" {
-  description = "Port RDS MySQL"
-  value       = aws_db_instance.mysql.port
-}
+# output "rds_port" {
+#   description = "Port RDS MySQL"
+#   value       = aws_db_instance.mysql.port
+# }
 
-output "rds_db_name" {
-  description = "Nom de la base de données RDS"
-  value       = aws_db_instance.mysql.db_name
-}
+# output "rds_db_name" {
+#   description = "Nom de la base de données RDS"
+#   value       = aws_db_instance.mysql.db_name
+# }
 
-output "rds_username" {
-  description = "Nom d'utilisateur RDS"
-  value       = aws_db_instance.mysql.username
-  sensitive   = true
-}
+# output "rds_username" {
+#   description = "Nom d'utilisateur RDS"
+#   value       = aws_db_instance.mysql.username
+#   sensitive   = true
+# }
 
-output "rds_password" {
-  description = "Mot de passe RDS"
-  value       = aws_db_instance.mysql.password
-  sensitive   = true
-}
+# output "rds_password" {
+#   description = "Mot de passe RDS"
+#   value       = aws_db_instance.mysql.password
+#   sensitive   = true
+# }
 
 # Security Groups
 output "eks_cluster_security_group_id" {
@@ -130,10 +130,10 @@ output "eks_nodes_security_group_id" {
   value       = aws_security_group.eks_nodes.id
 }
 
-output "rds_security_group_id" {
-  description = "ID du security group RDS"
-  value       = aws_security_group.rds.id
-}
+# output "rds_security_group_id" {
+#   description = "ID du security group RDS"
+#   value       = aws_security_group.rds.id
+# }
 
 # IAM Roles
 output "eks_cluster_role_arn" {
