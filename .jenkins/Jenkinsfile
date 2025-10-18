@@ -565,7 +565,7 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
         ]
 
         // 2️⃣ Extract service name without environment suffix
-        def baseServiceName = serviceName.replaceAll("-${params.ENVIRONMENT}$", "")
+        def baseServiceName = serviceName.replaceAll("-${params.ENVIRONMENT}\\$", "")
         echo "🔍 Base service name: ${baseServiceName} (from ${serviceName})"
         
         // 3️⃣ Default to global config if service not explicitly mapped
