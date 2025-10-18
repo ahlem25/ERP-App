@@ -166,3 +166,66 @@ output "kubectl_config" {
     endpoint     = aws_eks_cluster.main.endpoint
   }
 }
+
+# S3 Outputs
+output "s3_uploads_bucket_name" {
+  description = "Nom du bucket S3 pour les fichiers uploadés"
+  value       = aws_s3_bucket.uploads.bucket
+}
+
+output "s3_uploads_bucket_arn" {
+  description = "ARN du bucket S3 pour les fichiers uploadés"
+  value       = aws_s3_bucket.uploads.arn
+}
+
+output "s3_uploads_bucket_domain_name" {
+  description = "Nom de domaine du bucket S3 pour les fichiers uploadés"
+  value       = aws_s3_bucket.uploads.bucket_domain_name
+}
+
+output "s3_uploads_bucket_regional_domain_name" {
+  description = "Nom de domaine régional du bucket S3 pour les fichiers uploadés"
+  value       = aws_s3_bucket.uploads.bucket_regional_domain_name
+}
+
+output "s3_temp_files_bucket_name" {
+  description = "Nom du bucket S3 pour les fichiers temporaires"
+  value       = aws_s3_bucket.temp_files.bucket
+}
+
+output "s3_temp_files_bucket_arn" {
+  description = "ARN du bucket S3 pour les fichiers temporaires"
+  value       = aws_s3_bucket.temp_files.arn
+}
+
+output "s3_access_logs_bucket_name" {
+  description = "Nom du bucket S3 pour les logs d'accès"
+  value       = aws_s3_bucket.access_logs.bucket
+}
+
+output "s3_access_logs_bucket_arn" {
+  description = "ARN du bucket S3 pour les logs d'accès"
+  value       = aws_s3_bucket.access_logs.arn
+}
+
+# Configuration S3 pour l'application
+output "s3_configuration" {
+  description = "Configuration S3 pour l'application backend"
+  value = {
+    uploads_bucket = {
+      name = aws_s3_bucket.uploads.bucket
+      arn  = aws_s3_bucket.uploads.arn
+      region = var.aws_region
+    }
+    temp_files_bucket = {
+      name = aws_s3_bucket.temp_files.bucket
+      arn  = aws_s3_bucket.temp_files.arn
+      region = var.aws_region
+    }
+    access_logs_bucket = {
+      name = aws_s3_bucket.access_logs.bucket
+      arn  = aws_s3_bucket.access_logs.arn
+      region = var.aws_region
+    }
+  }
+}
