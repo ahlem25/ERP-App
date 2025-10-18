@@ -28,6 +28,18 @@ L'infrastructure comprend :
 - kubectl installé
 - Accès AWS avec permissions appropriées
 
+## 📁 Structure des fichiers
+
+- **`provider.tf`** : Configuration des providers Terraform (AWS, Kubernetes)
+- **`variables.tf`** : Définition des variables d'entrée
+- **`main.tf`** : Infrastructure principale (VPC, EKS, Security Groups, IAM)
+- **`eks-access.tf`** : Configuration des accès EKS et ConfigMap aws-auth
+- **`s3.tf`** : Configuration des buckets S3
+- **`rds.tf`** : Configuration RDS MySQL (commenté)
+- **`ecr.tf`** : Configuration des repositories ECR
+- **`policies.tf`** : Politiques IAM pour les services ERP
+- **`outputs.tf`** : Variables de sortie
+
 ## 🚀 Déploiement
 
 ### 1. Configuration initiale
@@ -293,7 +305,7 @@ Le fichier `eks-access.tf` gère automatiquement l'accès au cluster EKS via le 
 
 ```bash
 # Mettre à jour kubeconfig
-aws eks update-kubeconfig --region eu-west-3 --name erp-app-cluster-xxxxx
+aws eks update-kubeconfig --region eu-west-3 --name erp-app-cluster
 
 # Vérifier l'accès
 kubectl get nodes

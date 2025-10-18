@@ -1,48 +1,7 @@
 # Configuration Terraform pour l'infrastructure AWS ERP
-terraform {
-  required_version = ">= 1.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.23"
-    }
-  }
-}
+# Voir provider.tf pour la configuration des providers
 
-# Configuration du provider AWS
-provider "aws" {
-  region = var.aws_region
-}
-
-# Configuration du provider Kubernetes
-provider "kubernetes" {
-  host                   = aws_eks_cluster.main.endpoint
-  cluster_ca_certificate = base64decode(aws_eks_cluster.main.certificate_authority[0].data)
-
-  exec {
-    api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "aws"
-    args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.main.name]
-  }
-}
-
-# Variables
-
-variable "vpc_cidr" {
-  description = "CIDR block for VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-variable "availability_zones" {
-  description = "Availability zones"
-  type        = list(string)
-  default     = ["eu-west-3a", "eu-west-3b", "eu-west-3c"]
-}
+# Variables définies dans variables.tf
 
 # Data sources
 data "aws_availability_zones" "available" {
@@ -181,14 +140,9 @@ resource "aws_security_group" "eks_nodes" {
   }
 }
 
-# Random ID pour éviter les conflits de noms
-resource "random_id" "cluster_suffix" {
-  byte_length = 4
-}
-
 # EKS Cluster
 resource "aws_eks_cluster" "main" {
-  name     = "${var.project_name}-cluster-${random_id.cluster_suffix.hex}"
+  name     = "erp-app-cluster"
   role_arn = aws_iam_role.eks_cluster.arn
   version  = var.eks_version
 
