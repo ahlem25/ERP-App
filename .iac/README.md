@@ -268,9 +268,44 @@ Toutes les ressources sont taguées avec :
 - **EKS Cluster** : Permissions pour gérer le cluster
 - **EKS Nodes** : Permissions pour les nœuds worker
 
+## 🔐 Gestion des Accès EKS (eks-access.tf)
+
+Le fichier `eks-access.tf` gère automatiquement l'accès au cluster EKS via le ConfigMap aws-auth.
+
+### 🎯 Configuration des Accès
+
+#### **1. ConfigMap aws-auth**
+- **Rôles EKS** : Configuration automatique des rôles des nœuds
+- **Utilisateurs** : Jenkins et Root User avec accès complet
+- **Groupes** : `system:masters` pour les administrateurs
+
+#### **2. Utilisateurs Configurés**
+- **jenkins-user** : `arn:aws:iam::ACCOUNT_ID:user/jenkins-user`
+- **root** : `arn:aws:iam::ACCOUNT_ID:root`
+- **Groupes** : `system:masters` (accès complet au cluster)
+
+#### **3. Vérification Automatique**
+- Test d'accès au cluster après configuration
+- Affichage des informations du cluster
+- Validation des permissions
+
+### 📋 Commandes Utiles
+
+```bash
+# Mettre à jour kubeconfig
+aws eks update-kubeconfig --region eu-west-3 --name erp-app-cluster-xxxxx
+
+# Vérifier l'accès
+kubectl get nodes
+kubectl get namespaces
+
+# Voir la configuration aws-auth
+kubectl get configmap aws-auth -n kube-system -o yaml
+```
+
 ## 🔐 Gestion des Politiques IAM (policies.tf)
 
-Le fichier `policies.tf` gère automatiquement les permissions et l'accès aux ressources AWS pour Jenkins et les services ERP.
+Le fichier `policies.tf` gère les permissions IAM pour les services ERP.
 
 ### 🎯 Rôle et Utilité
 
