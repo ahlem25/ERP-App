@@ -11,6 +11,7 @@ pipeline {
         booleanParam(name: 'DEPLOY_TO_EKS', defaultValue: true, description: 'Used to deploy all services in AWS EKS.')
         booleanParam(name: 'SKIP_TESTS', defaultValue: true, description: 'Used to skip tests.')
         booleanParam(name: 'SKIP_SONARQUBE', defaultValue: true, description: 'Used to skip SonarQube analysis.')
+        booleanParam(name: 'SKIP_BUILD', defaultValue: true, description: 'Used to skip Maven build and Docker image creation.')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'test', 'pprd', 'prod'], description: 'Select the environment')
     }
     environment {
@@ -88,6 +89,9 @@ pipeline {
         }
 
         stage('Build') {
+            when {
+                expression { return !params.SKIP_BUILD }
+            }
             steps {
                 echo 'Building the ERP project...'
                 sh "mvn -am -amd versions:set -DnewVersion=${env.POM_VERSION}"
@@ -171,6 +175,9 @@ pipeline {
         }
 
         stage('Build & push images') {
+            when {
+                expression { return !params.SKIP_BUILD }
+            }
             steps {
                 script {
                     echo 'Find Jar files for ERP services...'
@@ -598,7 +605,9 @@ spec:
 
         // Save deployment YAML to file
         writeFile file: "${serviceName}-deployment.yaml", text: deploymentYaml
-
+        // print the deployment YAML file
+        sh "cat ${serviceName}-deployment.yaml"
+        echo "✅ Deployment YAML file created successfully!"
         // Apply deployment
         sh "kubectl apply -f ${serviceName}-deployment.yaml"
 
