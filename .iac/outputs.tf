@@ -80,14 +80,14 @@ output "node_group_status" {
 output "ecr_repository_urls" {
   description = "URLs des repositories ECR"
   value = {
-    for service in local.erp_services : service => aws_ecr_repository.erp_services[service].repository_url
+    for key, repo in aws_ecr_repository.erp_services : key => repo.repository_url
   }
 }
 
 output "ecr_repository_arns" {
   description = "ARNs des repositories ECR"
   value = {
-    for service in local.erp_services : service => aws_ecr_repository.erp_services[service].arn
+    for key, repo in aws_ecr_repository.erp_services : key => repo.arn
   }
 }
 
