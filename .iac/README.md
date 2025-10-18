@@ -36,7 +36,7 @@ L'infrastructure comprend :
 - **`eks-access.tf`** : Configuration des accès EKS et ConfigMap aws-auth
 - **`s3.tf`** : Configuration des buckets S3
 - **`rds.tf`** : Configuration RDS MySQL (commenté)
-- **`ecr.tf`** : Configuration des repositories ECR
+- **`ecr.tf`** : Configuration des repositories ECR (avec force_delete pour la destruction)
 - **`policies.tf`** : Politiques IAM pour les services ERP
 - **`outputs.tf`** : Variables de sortie
 
@@ -76,7 +76,12 @@ terraform plan
 terraform apply -auto-approve
 
 # 6. Destruction: Destruction des Ressources
+# Supprimer les nodes EKS en premier 
+terraform destroy -target=aws_eks_cluster.main -target=aws_eks_node_group.main
+# Supprimer les autres ressources 
 terraform destroy -auto-approve
+#  Supprimer les ECR non vides 
+
 ```
 
 ### 3. Validation de la configuration
