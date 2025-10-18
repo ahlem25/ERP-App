@@ -256,8 +256,9 @@ pipeline {
                 script {
                     try {
                         echo "🔄 Start deploying ERP services to EKS."
-                        echo "⚙️ Step 1: Applying shared ConfigMap to namespace ${env.EKS_NAMESPACE}..."
+                        echo "⚙️ Step 1: Applying shared ConfigMap & secrets to namespace ${env.EKS_NAMESPACE}..."
                         createOrUpdateConfigMap(env.EKS_NAMESPACE)
+                        createOrUpdateSecrets(env.EKS_NAMESPACE)
                         echo "⚙️ Step 2: Deploy all microservice (create deployment & service) to namespace ${env.EKS_NAMESPACE}..."
                         
                         // Handle case when build is skipped
@@ -511,7 +512,6 @@ data:
 
   DB_URL: "jdbc:mysql://mysql-erp-dev-service:3306/erp_db?useSSL=false"
   DB_USERNAME: "admin"
-  DB_PASSWORD: "erp_password_2024"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -542,6 +542,37 @@ data:
     }
 }
 
+def createOrUpdateSecrets(String namespace) {
+    try {
+        echo "📦 Creating or updating Secrets in namespace ${namespace}..."
+        def secretsYaml = """
+apiVersion: v1
+kind: Secret
+metadata:
+  name: erp-database-secrets
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Database Password (base64 encoded)
+  DB_PASSWORD: "erp_password_2024"
+"""
+
+        // Save YAML file and apply it
+        writeFile file: "erp-secrets.yaml", text: secretsYaml
+        // print the secrets YAML file
+        sh "cat erp-secrets.yaml"
+        echo "✅ Secrets YAML file created successfully!"
+        // Apply secrets    
+        sh "kubectl apply -f erp-secrets.yaml"
+
+        echo "✅ Secrets applied successfully!" 
+    } catch (Exception e) {
+        echo "❌ Error while applying Secrets: ${e.getMessage()}"
+        throw e
+    }
+}
 
 def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, String namespace) {
     try {
@@ -581,6 +612,13 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
             envFromYamlList.add("""${indent}- configMapRef:
               name: ${cm}""")
         }
+        
+        // Add database secrets for services that have erp-database-config
+        if (configMaps.contains("erp-database-config")) {
+            envFromYamlList.add("""          - secretRef:
+              name: erp-database-secrets""")
+        }
+        
         def envFromYaml = envFromYamlList.join('\n')
 
 
