@@ -19,7 +19,7 @@ spec:
       containers:
       - name: keycloak
         image: quay.io/keycloak/keycloak:24.0.3
-        command: ["start-dev", "--import-realm"]
+        command: ["/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm"]
         ports:
         - containerPort: 8080
         env:
@@ -35,23 +35,27 @@ spec:
           mountPath: /opt/keycloak/data/import
         resources:
           requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
             memory: "1Gi"
             cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
         livenessProbe:
           httpGet:
-            path: /health
+            path: /health/live
             port: 8080
-          initialDelaySeconds: 60
+          initialDelaySeconds: 90
           periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
         readinessProbe:
           httpGet:
             path: /health/ready
             port: 8080
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
       volumes:
       - name: realm-config
         configMap:
