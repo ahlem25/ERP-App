@@ -2,7 +2,7 @@
 
 # Bucket S3 principal pour les fichiers uploadés
 resource "aws_s3_bucket" "uploads" {
-  bucket = "${var.project_name}-uploads-${random_id.cluster_suffix.hex}"
+  bucket = "${var.project_name}-uploads"
 
   tags = merge(var.tags, {
     Name        = "${var.project_name}-uploads"
