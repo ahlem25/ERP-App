@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak-deployment
+  namespace: erp-prod
+  labels:
+    app: keycloak
+    environment: production
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+      - name: keycloak
+        image: quay.io/keycloak/keycloak:24.0.3
+        command: ["/opt/keycloak/bin/kc.sh", "start-dev", "--import-realm"]
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KEYCLOAK_ADMIN
+          value: "admin"
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: erp-secrets
+              key: KEYCLOAK_ADMIN_PASSWORD
+        volumeMounts:
+        - name: realm-config
+          mountPath: /opt/keycloak/data/import
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
+      volumes:
+      - name: realm-config
+        configMap:
+          name: keycloak-realm-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-service
+  namespace: erp-prod
+  labels:
+    app: keycloak
+    environment: production
+spec:
+  selector:
+    app: keycloak
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: LoadBalancer  # Exposé pour l'accès externe
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm-config
+  namespace: erp-prod
+  labels:
+    app: keycloak
+    environment: production
+data:
+  realm-export.json: |
+    {
+      "realm": "erp-realm",
+      "enabled": true,
+      "displayName": "ERP Application",
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": true,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": true,
+      "clients": [
+        {
+          "clientId": "erp-client",
+          "enabled": true,
+          "clientAuthenticatorType": "client-secret",
+          "secret": "your-client-secret",
+          "redirectUris": ["http://localhost:4200/*"],
+          "webOrigins": ["http://localhost:4200"],
+          "standardFlowEnabled": true,
+          "directAccessGrantsEnabled": true,
+          "serviceAccountsEnabled": true,
+          "publicClient": false,
+          "protocol": "openid-connect"
+        }
+      ],
+      "users": [
+        {
+          "username": "admin",
+          "enabled": true,
+          "email": "admin@erp.com",
+          "firstName": "Admin",
+          "lastName": "User",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "passw0rd",
+              "temporary": false
+            }
+          ]
+        }
+      ],
+      "roles": {
+        "realm": [
+          {
+            "name": "ADMIN",
+            "description": "Administrator role"
+          },
+          {
+            "name": "USER",
+            "description": "Regular user role"
+          },
+          {
+            "name": "MANAGER",
+            "description": "Manager role"
+          }
+        ]
+      }
+    }

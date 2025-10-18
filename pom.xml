@@ -301,11 +301,12 @@
                                 <goal>test</goal>
                             </goals>
                             <configuration>
+                                <!-- Run only Unit Tests with suffix UT -->
+                                <includes>
+                                    <include>**/*UT.java</include>
+                                </includes>
                                 <excludes>
-                                    <exclude>**/*IntegrationTest.java</exclude>
-                                    <exclude>**/IntegrationTest*.java</exclude>
                                     <exclude>**/*IT.java</exclude>
-                                    <exclude>**/IT*.java</exclude>
                                 </excludes>
                             </configuration>
                         </execution>
@@ -325,11 +326,9 @@
                                 <goal>verify</goal>
                             </goals>
                             <configuration>
+                                <!-- Run only Integration Tests with suffix IT -->
                                 <includes>
-                                    <include>**/*IntegrationTest.java</include>
-                                    <include>**/IntegrationTest*.java</include>
                                     <include>**/*IT.java</include>
-                                    <include>**/IT*.java</include>
                                 </includes>
                             </configuration>
                         </execution>
