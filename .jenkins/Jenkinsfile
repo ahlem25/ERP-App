@@ -59,7 +59,29 @@ pipeline {
 
                     echo "✅ This version is: ${env.POM_VERSION}"
                     withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: "${CREDENTIALS_ID}"]]) {
-                        loginToAWSAndECR(env.AWS_DEFAULT_REGION, env.ECR_PRIVATE_REGISTRY_URL)
+                        try{
+                            loginToAWSAndECR(env.AWS_DEFAULT_REGION, env.ECR_PRIVATE_REGISTRY_URL)
+                            echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
+                            sh 'rm -rf ~/.kube/cache ~/.aws/cli/cache ~/.kube/config'
+                            // sh 'kubectl config view'
+                            updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
+                            // sh 'kubectl config view'
+                            // sh 'aws eks get-token --region eu-west-3 --cluster-name erp-app-cluster'
+                            // sh 'aws sts get-caller-identity'
+                            // sh 'kubectl config view'
+                            // sh 'kubectl config current-context'
+                                def status = sh(script: 'kubectl get nodes', returnStatus: true)
+                                if (status == 0) {
+                                    echo "✅ EKS cluster reachable"
+                                } else {
+                                    echo "⚠️ EKS cluster unreachable"
+                                }
+                            // sh 'kubectl get svc --kubeconfig ~/.kube/config'
+                            sh 'kubectl get pods'
+                        } catch (Exception e) {
+                            echo "❌ An error occurred: ${e.getMessage()}"
+                            throw e
+                        }
                     }
                 }
             }
@@ -101,7 +123,7 @@ pipeline {
             }
         }
 
-        stage('Integration Test') { 
+        stage('Integration Test') {
             when {
                 expression { return !params.SKIP_TESTS }
             }
@@ -154,7 +176,7 @@ pipeline {
                     echo 'Find Jar files for ERP services...'
                     def erp_services = [
                         "erp-service-discovery",
-                        "erp-config", 
+                        "erp-config",
                         "erp-api-gateway",
                         "erp-user-service",
                         "erp-product-service",
@@ -168,7 +190,7 @@ pipeline {
                         "erp-dashboard-service",
                         "erp-scheduler-service"
                     ]
-                    
+
                     def jar_files = []
                     erp_services.each { service ->
                         sh(script: """find ./${service}/ -name '*.jar'""", returnStdout: true).trim().split('\n').each { jar_files << it }
@@ -202,14 +224,12 @@ pipeline {
             steps {
                 script {
                     // Ensure kubeconfig is set for the target cluster
-                    echo "🔐 Updating kubeconfig for EKS cluster '${env.EKS_CLUSTER}' in region '${env.AWS_DEFAULT_REGION}'..."
-                    updateKubeconfig(env.AWS_DEFAULT_REGION, env.EKS_CLUSTER)
                     echo "🔍 Checking if namespace ${env.EKS_NAMESPACE} exists..."
                     def namespaceExists = sh(
                         script: "kubectl get namespace ${env.EKS_NAMESPACE} 2>/dev/null",
                         returnStatus: true
                     )
-                    
+
                     if (namespaceExists != 0) {
                         echo "⚡ Creating namespace ${env.EKS_NAMESPACE}..."
                         sh "kubectl create namespace ${env.EKS_NAMESPACE}"
@@ -229,21 +249,21 @@ pipeline {
                 script {
                     try {
                         echo "🔄 Start deploying ERP services to EKS."
+                        echo "⚙️ Step 1: Applying shared ConfigMap to namespace ${env.EKS_NAMESPACE}..."
+                        createOrUpdateConfigMap(env.EKS_NAMESPACE)
+                        echo "⚙️ Step 2: Deploy all microservice (create deployment & service) to namespace ${env.EKS_NAMESPACE}..."
                         println ecrServices
-                        // Deploy foundational services: MySQL and Keycloak
-                        createOrUpdateMySQL("mysql-${params.ENVIRONMENT}", env.EKS_NAMESPACE)
-                        createOrUpdateKeycloak("keycloak-${params.ENVIRONMENT}", env.EKS_NAMESPACE)
                         ecrServices.each { service, imageUrl ->
                             println "$service: $imageUrl"
                             def serviceName = "${service}-${params.ENVIRONMENT}"
                             def deploymentName = "${serviceName}-deployment"
-                            
+
                             // Create or update deployment
                             createOrUpdateKubernetesDeployment(serviceName, imageUrl, env.EKS_NAMESPACE)
-                            
+
                             // Create or update service
                             createOrUpdateKubernetesService(serviceName, env.EKS_NAMESPACE)
-                            
+
                             echo "🔄 Deploying EKS service: ${serviceName}"
                         }
                         echo "✅ All ERP services have been deployed successfully."
@@ -332,20 +352,180 @@ def deleteImageWithSameTagBeforePushDocker(String awsRegion, String ecrRepoURL, 
 
 def updateKubeconfig(String awsRegion, String clusterName) {
     try {
-        echo "Starting to update kubeconfig..."
+        echo "🔄 Updating kubeconfig for cluster: ${clusterName}..."
+
+        // 1️⃣ Mise à jour du kubeconfig
         sh """
-            aws eks update-kubeconfig --region ${awsRegion} --name ${clusterName}
+            aws eks update-kubeconfig \
+                --region ${awsRegion} \
+                --name ${clusterName} \
+                --alias ${clusterName}
         """
-        echo "✅ Kubeconfig updated."
+
+        // 2️⃣ Correction du chemin du binaire AWS et de l’API version
+        sh '''
+        AWS_PATH=$(which aws)
+        echo "🧩 AWS CLI path detected: $AWS_PATH"
+
+        # Remplace la commande AWS dans kubeconfig par son chemin absolu
+        sed -i "s|command: aws|command: ${AWS_PATH}|" ~/.kube/config
+
+        # Force la version API à v1 (plus stable que v1beta1)
+        sed -i "s|client.authentication.k8s.io/v1beta1|client.authentication.k8s.io/v1|" ~/.kube/config
+
+        echo "🧩 Patching kubeconfig to add interactiveMode: IfAvailable..."
+        sed -i '/command: .*aws/a\\      interactiveMode: IfAvailable' /var/lib/jenkins/.kube/config
+
+        # cat /var/lib/jenkins/.kube/config
+        # kubectl config view
+
+        echo "✅ kubeconfig successfully patched!"
+        '''
+
+        // 3️⃣ Vérifications de l’environnement et des permissions
+        sh '''
+        export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID
+        export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY
+        export AWS_DEFAULT_REGION=eu-west-3
+        export PATH=$PATH:/usr/local/bin
+
+        echo "🔍 Vérification d’accès à AWS et EKS..."
+        aws sts get-caller-identity
+        kubectl config current-context
+        '''
+
+        echo "✅ Kubeconfig ready for use with kubectl."
     } catch (Exception e) {
         error "❌ Failed to update kubeconfig: ${e.message}"
     }
 }
 
+def createOrUpdateConfigMap(String namespace) {
+    try {
+        echo "📦 Creating or updating ConfigMap in namespace ${namespace}..."
+
+        // Get port of services
+        def configServicePort = getServicePort("erp-config")
+        def serviceDiscoveryPort = getServicePort("erp-service-discovery")
+
+        // Example shared ConfigMap (customize as needed)
+        def configMapYaml = """
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-config-service
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Spring Profile Configuration
+  SPRING_PROFILES_ACTIVE: "prd"
+  # JVM Configuration
+  JAVA_OPTS: "-Xmx512m -Xms256m"
+  # Désactiver la configuration Git pour éviter les problèmes de permissions
+  SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: master
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-global-config
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Spring Configuration
+  SPRING_PROFILES_ACTIVE: "prd"
+
+  # Eureka Configuration
+  EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE: "http://erp-service-discovery:${serviceDiscoveryPort}/eureka/"
+
+  # Spring Cloud Config
+  SPRING_CLOUD_CONFIG_URI: "http://erp-config:${configServicePort}"
+  
+  # JVM Configuration
+  JAVA_OPTS: "-Xmx1024m -Xms512m"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-database-config
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Database Configuration
+  # DB_URL: "jdbc:mysql://mysql-service:3306/erp_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
+  # DB_USERNAME: "admin"
+
+  DB_URL: "jdbc:mysql://mysql-erp-dev-service:3306/erp_db?useSSL=false"
+  DB_USERNAME: "admin"
+  DB_PASSWORD: "erp_password_2024"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-keycloak-config
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # Keycloak Configuration
+  KEYCLOAK_URL: "http://keycloak-service:8080"
+  KEYCLOAK_REALM: "erp-realm"
+  KEYCLOAK_CLIENT_ID: "erp-client"
+  KEYCLOAK_CLIENT_SECRET: "your-client-secret"
+  KEYCLOAK_ADMIN_USERNAME: "admin"
+  KEYCLOAK_ADMIN_PASSWORD: "passw0rd"
+"""
+
+        // Save YAML file and apply it
+        writeFile file: "erp-configmap.yaml", text: configMapYaml
+        sh "kubectl apply -f erp-configmap.yaml"
+
+        echo "✅ ConfigMap applied successfully!"
+    } catch (Exception e) {
+        echo "❌ Error while applying ConfigMap: ${e.getMessage()}"
+        throw e
+    }
+}
+
+
 def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, String namespace) {
     try {
         echo "🔄 Creating/Updating Kubernetes deployment for ${serviceName}..."
-        
+        // 1️⃣ Define which ConfigMaps are used by which microservice
+        def serviceConfigMapMapping = [
+            "erp-config"            : ["erp-config-service"],
+            "erp-service-discovery" : ["erp-global-config"],
+            "erp-api-gateway"       : ["erp-global-config"],
+            "erp-user-service"      : ["erp-global-config", "erp-database-config",  "erp-keycloak-config"],
+            "erp-product-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-inventory-service" : ["erp-global-config", "erp-database-config"],
+            "erp-supplier-service"  : ["erp-global-config", "erp-database-config"],
+            "erp-order-service"     : ["erp-global-config", "erp-database-config"],
+            "erp-client-service"    : ["erp-global-config", "erp-database-config"],
+            "erp-payment-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-billing-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-sales-service"     : ["erp-global-config", "erp-database-config"],
+            "erp-dashboard-service" : ["erp-global-config", "erp-database-config"],
+            "erp-scheduler-service" : ["erp-global-config", "erp-database-config"]
+        ]
+
+        // 2️⃣ Default to global config if service not explicitly mapped
+        def configMaps = serviceConfigMapMapping.get(serviceName, ["erp-global-config"])
+
+        // 3️⃣ Build envFrom YAML dynamically
+        def envFromYaml = configMaps.collect { cm ->
+            """          - configMapRef:
+              name: ${cm}"""
+        }.join('\n')
+
+
+        // 4️⃣ Generate the final deployment YAML
         def deploymentYaml = """
 apiVersion: apps/v1
 kind: Deployment
@@ -353,7 +533,10 @@ metadata:
   name: ${serviceName}-deployment
   namespace: ${namespace}
   labels:
-    app: ${serviceName}
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+    version: ${env.POM_VERSION}
+    managed-by: jenkins
 spec:
   replicas: 2
   selector:
@@ -369,19 +552,29 @@ spec:
         image: ${imageUrl}
         ports:
         - containerPort: 8080
+        envFrom:
+        ${envFromYaml}
         env:
-        - name: SPRING_PROFILES_ACTIVE
-          value: "${params.ENVIRONMENT}"
-        - name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
-          value: "http://erp-service-discovery-${params.ENVIRONMENT}-service:8013/eureka/"
-        - name: SPRING_CLOUD_CONFIG_URI
-          value: "http://erp-config-${params.ENVIRONMENT}-service:8012"
-        - name: DB_URL
-          value: "jdbc:mysql://mysql-${params.ENVIRONMENT}-service:3306/erp_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-        - name: DB_USERNAME
-          value: "admin"
-        - name: DB_PASSWORD
-          value: "erp_password_2024"
+        #- name: SPRING_PROFILES_ACTIVE
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: SPRING_PROFILES_ACTIVE
+        #- name: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE
+        #- name: SPRING_CLOUD_CONFIG_URI
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: SPRING_CLOUD_CONFIG_URI
+        #- name: JAVA_OPTS
+        #  valueFrom:
+        #    configMapKeyRef:
+        #      name: erp-global-config
+        #      key: JAVA_OPTS
         resources:
           requests:
             memory: "512Mi"
@@ -408,9 +601,9 @@ spec:
 
         // Apply deployment
         sh "kubectl apply -f ${serviceName}-deployment.yaml"
-        
+
         echo "✅ Deployment ${serviceName}-deployment created/updated successfully!"
-        
+
     } catch (Exception e) {
         echo "❌ Error creating deployment: ${e.message}"
         throw e
@@ -420,18 +613,21 @@ spec:
 def createOrUpdateKubernetesService(String serviceName, String namespace) {
     try {
         echo "🔄 Creating/Updating Kubernetes service for ${serviceName}..."
-        
+
         // Get port from service name
         def port = getServicePort(serviceName)
-        
+
         def serviceYaml = """
 apiVersion: v1
 kind: Service
 metadata:
-  name: ${serviceName}-service
+  name: ${serviceName}
   namespace: ${namespace}
   labels:
     app: ${serviceName}
+    environment: ${params.ENVIRONMENT}
+    version: ${env.POM_VERSION}
+    managed-by: jenkins
 spec:
   selector:
     app: ${serviceName}
@@ -447,9 +643,9 @@ spec:
 
         // Apply service
         sh "kubectl apply -f ${serviceName}-service.yaml"
-        
+
         echo "✅ Service ${serviceName}-service created/updated successfully!"
-        
+
     } catch (Exception e) {
         echo "❌ Error creating service: ${e.message}"
         throw e
@@ -473,152 +669,6 @@ def getServicePort(String serviceName) {
         "erp-dashboard-service": 8065,
         "erp-scheduler-service": 8066
     ]
-    
+
     return portMap.get(serviceName, 8080)
-}
-
-def createOrUpdateMySQL(String baseName, String namespace) {
-    try {
-        echo "🔄 Creating/Updating MySQL (ClusterIP) ..."
-        def name = baseName
-        def deploymentYaml = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${name}-deployment
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${name}
-  template:
-    metadata:
-      labels:
-        app: ${name}
-    spec:
-      containers:
-      - name: mysql
-        image: mysql:8.0
-        ports:
-        - containerPort: 3306
-        env:
-        - name: MYSQL_ROOT_PASSWORD
-          value: "root"
-        - name: MYSQL_DATABASE
-          value: "achat_db"
-        - name: MYSQL_USER
-          value: "ahlem"
-        - name: MYSQL_PASSWORD
-          value: "achat"
-        args: ["--default-authentication-plugin=mysql_native_password"]
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-"""
-
-        def serviceYaml = """
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${name}-service
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  selector:
-    app: ${name}
-  ports:
-  - port: 3306
-    targetPort: 3306
-    protocol: TCP
-  type: ClusterIP
-"""
-
-        writeFile file: "${name}-deployment.yaml", text: deploymentYaml
-        writeFile file: "${name}-service.yaml", text: serviceYaml
-        sh "kubectl apply -f ${name}-deployment.yaml"
-        sh "kubectl apply -f ${name}-service.yaml"
-        echo "✅ MySQL deployed/updated."
-    } catch (Exception e) {
-        echo "❌ Error creating MySQL: ${e.message}"
-        throw e
-    }
-}
-
-def createOrUpdateKeycloak(String baseName, String namespace) {
-    try {
-        echo "🔄 Creating/Updating Keycloak (LoadBalancer) ..."
-        def name = baseName
-        def deploymentYaml = """
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ${name}-deployment
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ${name}
-  template:
-    metadata:
-      labels:
-        app: ${name}
-    spec:
-      containers:
-      - name: keycloak
-        image: quay.io/keycloak/keycloak:24.0.3
-        args: ["start-dev"]
-        ports:
-        - containerPort: 8080
-        env:
-        - name: KEYCLOAK_ADMIN
-          value: "admin"
-        - name: KEYCLOAK_ADMIN_PASSWORD
-          value: "passw0rd"
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-"""
-
-        def serviceYaml = """
-apiVersion: v1
-kind: Service
-metadata:
-  name: ${name}-service
-  namespace: ${namespace}
-  labels:
-    app: ${name}
-spec:
-  selector:
-    app: ${name}
-  ports:
-  - port: 8080
-    targetPort: 8080
-    protocol: TCP
-  type: LoadBalancer
-"""
-
-        writeFile file: "${name}-deployment.yaml", text: deploymentYaml
-        writeFile file: "${name}-service.yaml", text: serviceYaml
-        sh "kubectl apply -f ${name}-deployment.yaml"
-        sh "kubectl apply -f ${name}-service.yaml"
-        echo "✅ Keycloak deployed/updated and exposed externally."
-    } catch (Exception e) {
-        echo "❌ Error creating Keycloak: ${e.message}"
-        throw e
-    }
 }
