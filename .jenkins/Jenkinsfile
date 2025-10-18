@@ -641,7 +641,7 @@ metadata:
     version: ${env.POM_VERSION}
     managed-by: jenkins
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: ${serviceName}
