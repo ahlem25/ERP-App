@@ -10,6 +10,7 @@ L'infrastructure comprend :
 - **Kubernetes Namespaces** pour chaque environnement (dev, test, prod)
 - **ECR Repositories** pour stocker les images Docker (un par service et environnement)
 - **RDS MySQL** pour la base de données
+- **S3 Buckets** pour le stockage des fichiers uploadés
 - **Security Groups** pour la sécurité réseau
 - **IAM Roles** pour les permissions
 
@@ -176,9 +177,17 @@ Pour chaque service, 2 repositories :
 
 ### RDS MySQL
 - **Instance** : `db.t3.micro`
-- **Engine** : MySQL 8.0.35
+- **Engine** : MySQL 8.0.36
 - **Storage** : 20GB (max 100GB)
 - **Backup** : 7 jours de rétention
+
+### S3 Buckets
+- **Uploads Bucket** : Stockage des fichiers uploadés par les utilisateurs
+- **Temp Files Bucket** : Fichiers temporaires (suppression automatique après 7 jours)
+- **Access Logs Bucket** : Logs d'accès S3
+- **Chiffrement** : AES256 pour tous les buckets
+- **Versioning** : Activé pour le bucket uploads
+- **Lifecycle** : Transition automatique vers IA/Glacier pour optimiser les coûts
 
 ## 🔧 Configuration
 
@@ -191,6 +200,61 @@ Pour chaque service, 2 repositories :
 | `project_name` | Nom du projet | `erp-app` |
 | `vpc_cidr` | CIDR du VPC | `10.0.0.0/16` |
 | `node_desired_size` | Nombre de nœuds | `2` |
+
+### Configuration S3 pour l'application
+
+Après le déploiement, récupérez les informations S3 nécessaires pour configurer votre backend :
+
+```bash
+# Récupérer la configuration S3 complète
+terraform output s3_configuration
+
+# Récupérer des informations spécifiques
+terraform output s3_uploads_bucket_name
+terraform output s3_uploads_bucket_arn
+terraform output s3_temp_files_bucket_name
+```
+
+#### Configuration dans votre application Spring Boot
+
+Ajoutez ces variables d'environnement dans votre configuration :
+
+```yaml
+# application.yml
+aws:
+  s3:
+    region: eu-west-3
+    uploads-bucket: erp-app-uploads-xxxxx
+    temp-files-bucket: erp-app-temp-files-xxxxx
+    access-logs-bucket: erp-app-s3-access-logs-xxxxx
+```
+
+#### Permissions IAM
+
+Les nœuds EKS ont automatiquement les permissions pour :
+- `s3:GetObject` - Lire les fichiers
+- `s3:PutObject` - Écrire les fichiers
+- `s3:DeleteObject` - Supprimer les fichiers
+- `s3:ListBucket` - Lister le contenu des buckets
+
+#### Utilisation dans le code
+
+```java
+// Exemple de configuration Spring Boot
+@Value("${aws.s3.uploads-bucket}")
+private String uploadsBucket;
+
+@Value("${aws.s3.region}")
+private String region;
+
+// Configuration du client S3
+@Bean
+public S3Client s3Client() {
+    return S3Client.builder()
+        .region(Region.of(region))
+        .build();
+}
+```
 
 ### Tags
 
@@ -312,7 +376,8 @@ kubectl get pods
 - **EC2 Nodes (2x t3.medium)** : ~$60/mois
 - **RDS MySQL (db.t3.micro)** : ~$15/mois
 - **NAT Gateway** : ~$45/mois
-- **Total estimé** : ~$193/mois
+- **S3 Buckets** : ~$5-20/mois (selon le volume de données)
+- **Total estimé** : ~$198-213/mois
 
 ## 🗑️ Destruction des Ressources
 
