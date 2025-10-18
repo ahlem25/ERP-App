@@ -577,7 +577,7 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
         // 4️⃣ Build envFrom YAML dynamically
         def envFromYamlList = []
         configMaps.eachWithIndex { cm, index ->
-            def indent = index == 0 ? "  " : "        "
+            def indent = index == 0 ? "  " : "          "
             envFromYamlList.add("""${indent}- configMapRef:
               name: ${cm}""")
         }
@@ -680,6 +680,10 @@ spec:
 
         // Save service YAML to file
         writeFile file: "${serviceName}-service.yaml", text: serviceYaml
+
+        // print the service YAML file
+        sh "cat ${serviceName}-service.yaml"
+        echo "✅ Service YAML file created successfully!"
 
         // Apply service
         sh "kubectl apply -f ${serviceName}-service.yaml"
