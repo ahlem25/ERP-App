@@ -512,11 +512,15 @@ data:
   DB_URL: "jdbc:mysql://erp-database-${params.ENVIRONMENT}.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306/erp_${params.ENVIRONMENT}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
   DB_USERNAME: "admin"
   # HikariCP Connection Pool Configuration (limite les connexions par service)
-  SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "3"
+  SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "2"
   SPRING_DATASOURCE_HIKARI_MINIMUM_IDLE: "1"
-  SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: "30000"
-  SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: "600000"
-  SPRING_DATASOURCE_HIKARI_MAX_LIFETIME: "1800000"
+  SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: "20000"
+  SPRING_DATASOURCE_HIKARI_IDLE_TIMEOUT: "300000"
+  SPRING_DATASOURCE_HIKARI_MAX_LIFETIME: "900000"
+  # Configuration Spring Boot pour éviter les connexions multiples
+  SPRING_DATASOURCE_TYPE: "com.zaxxer.hikari.HikariDataSource"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
+  SPRING_JPA_SHOW_SQL: "false"
 ---
 apiVersion: v1
 kind: ConfigMap

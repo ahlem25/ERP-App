@@ -54,7 +54,7 @@ resource "aws_db_instance" "mysql" {
 
   engine         = "mysql"
   engine_version = "8.0.43"  # Version stable supportée dans eu-west-3
-  instance_class = "db.t3.micro"
+  instance_class = "db.t3.small"
 
   allocated_storage     = 20
   max_allocated_storage = 100
