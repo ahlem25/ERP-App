@@ -8,6 +8,7 @@ L'infrastructure comprend :
 - **VPC** avec sous-réseaux publics et privés
 - **EKS Cluster unique** pour orchestrer les conteneurs
 - **Kubernetes Namespaces** pour chaque environnement (dev, test, pprd, prod)
+- **Kubernetes Dashboard** pour la gestion et le monitoring du cluster
 - **ECR Repositories** pour stocker les images Docker (un par service et environnement)
 - **RDS MySQL** : 4 instances séparées (une par environnement)
 - **S3 Buckets** pour le stockage des fichiers uploadés
@@ -30,10 +31,11 @@ L'infrastructure comprend :
 
 ## 📁 Structure des fichiers
 
-- **`provider.tf`** : Configuration des providers Terraform (AWS, Kubernetes)
+- **`provider.tf`** : Configuration des providers Terraform (AWS, Kubernetes, Helm)
 - **`variables.tf`** : Définition des variables d'entrée
 - **`main.tf`** : Infrastructure principale (VPC, EKS, Security Groups, IAM)
 - **`eks-access.tf`** : Configuration des accès EKS et ConfigMap aws-auth
+- **`eks_dashboard.tf`** : Configuration du dashboard Kubernetes avec Helm
 - **`s3.tf`** : Configuration des buckets S3
 - **`rds.tf`** : Configuration RDS MySQL (instances par environnement)
 - **`ecr.tf`** : Configuration des repositories ECR (avec force_delete pour la destruction)
@@ -157,6 +159,9 @@ kubectl get nodes
 
 # Vérifier les namespaces créés
 kubectl get namespaces
+
+# Vérifier le dashboard Kubernetes (si activé)
+kubectl get pods -n kubernetes-dashboard
 ```
 
 ## 📊 Services déployés
@@ -206,6 +211,15 @@ Pour chaque service, 2 repositories :
 - **Chiffrement** : AES256
 - **Versioning** : Activé
 - **Lifecycle** : Transition automatique vers IA/Glacier pour optimiser les coûts
+
+### Kubernetes Dashboard
+- **Namespace** : `kubernetes-dashboard`
+- **Installation** : Automatique via Helm chart
+- **Version** : 7.0.0 (configurable)
+- **Service** : ClusterIP par défaut (configurable)
+- **RBAC** : Rôles IAM et ClusterRoleBinding configurés
+- **Métriques** : ServiceMonitor activé pour Prometheus
+- **Sécurité** : OIDC et IAM roles pour l'authentification
 
 ## 🔧 Configuration
 
@@ -310,6 +324,374 @@ public S3Client s3Client() {
         .region(Region.of(region))
         .build();
 }
+```
+
+### Configuration du Dashboard Kubernetes
+
+Le dashboard Kubernetes est automatiquement installé et configuré via Terraform. Voici comment l'utiliser :
+
+#### **🚀 Démarrage rapide**
+
+```bash
+# 1. Vérifier que le dashboard est déployé
+kubectl get pods -n kubernetes-dashboard
+
+# 2. Récupérer le token d'authentification
+kubectl -n kubernetes-dashboard get secret dashboard-admin-token -o jsonpath='{.data.token}' | base64 -d
+
+# 3. Accéder au dashboard via Kong proxy (recommandé)
+kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard-kong-proxy 8443:443
+# Ouvrir https://localhost:8443 dans le navigateur et utiliser le token
+```
+
+#### **🔧 Variables de configuration**
+
+| Variable | Description | Défaut |
+|----------|-------------|---------|
+| `dashboard_enabled` | Activer le dashboard | `true` |
+| `dashboard_namespace` | Namespace pour le dashboard | `kubernetes-dashboard` |
+| `dashboard_chart_version` | Version du chart Helm | `7.0.0` |
+| `dashboard_service_type` | Type de service | `ClusterIP` |
+| `dashboard_service_port` | Port du service | `443` |
+| `dashboard_ingress_enabled` | Activer l'ingress | `false` |
+| `dashboard_metrics_enabled` | Activer les métriques | `true` |
+| `create_dashboard_rbac` | Créer les rôles RBAC | `true` |
+| `create_load_balancer` | Créer un Load Balancer | `false` |
+
+#### **🌐 Accès au Dashboard**
+
+##### **1. Port Forward via Kong Proxy (recommandé)**
+```bash
+# Mettre à jour la configuration kubectl
+aws eks update-kubeconfig --region eu-west-3 --name erp-app-cluster
+
+# Vérifier les namespaces créés
+kubectl get namespaces
+
+# Port Forward via Kong proxy (recommandé pour éviter les problèmes CSRF)
+kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard-kong-proxy 8443:443
+```
+Accédez à : `https://localhost:8443`
+
+##### **2. Port Forward direct (alternative)**
+```bash
+# Port Forward direct vers le service web
+kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard-web 8080:8000
+```
+Accédez à : `http://localhost:8080`
+
+##### **3. Via Ingress (production)**
+Si vous avez configuré un ingress, accédez à l'URL configurée :
+`https://dashboard.yourdomain.com`
+
+##### **4. Via Load Balancer**
+Si vous avez activé le Load Balancer, utilisez l'URL fournie dans les outputs.
+
+#### **🔐 Authentification**
+
+##### **Récupérer le token d'authentification**
+
+**🔍 Diagnostic préalable :**
+```bash
+# 1. Vérifier que le namespace existe
+kubectl get namespace kubernetes-dashboard
+
+# 2. Vérifier que le service account existe
+kubectl get serviceaccount -n kubernetes-dashboard
+
+# 3. Vérifier les secrets du service account
+kubectl get secrets -n kubernetes-dashboard | grep kubernetes-dashboard
+
+# 4. Vérifier si le service account a des secrets associés
+kubectl -n kubernetes-dashboard get sa kubernetes-dashboard -o jsonpath='{.secrets[0].name}'
+# Si cette commande retourne vide, le service account n'a pas de secret (normal avec les versions récentes)
+
+# 5. Vérifier la version de kubectl
+kubectl version --client
+# Si la version est < 1.24, la Méthode 1 ne fonctionnera pas
+```
+
+**Méthode 1 : Commande moderne (⚠️ Nécessite kubectl 1.24+)**
+```bash
+# Cette méthode fonctionne UNIQUEMENT avec kubectl 1.24+ et Kubernetes 1.24+
+# Votre version actuelle : kubectl 1.21.2 (trop ancienne)
+kubectl -n kubernetes-dashboard create token kubernetes-dashboard
+
+# Si vous obtenez "unknown command 'token'", utilisez la Méthode 4 (industrialisée)
+```
+
+**Méthode 2 : Récupération depuis le secret (compatible)**
+```bash
+# Étape 1 : Trouver le nom du secret
+SECRET_NAME=$(kubectl -n kubernetes-dashboard get sa kubernetes-dashboard -o jsonpath='{.secrets[0].name}')
+
+# Étape 2 : Récupérer le token
+kubectl -n kubernetes-dashboard get secret $SECRET_NAME -o jsonpath='{.data.token}' | base64 -d
+```
+
+**Méthode 3 : Alternative simple (⚠️ Ne fonctionne pas avec le service account par défaut)**
+```bash
+# Cette méthode ne fonctionne pas car le service account kubernetes-dashboard n'a pas de secret
+# Utilisez plutôt la Méthode 4 (industrialisée) ou la Méthode 5 (manuelle)
+kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa kubernetes-dashboard -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d
+```
+
+**Méthode 4 : Solution industrialisée avec Terraform (recommandée)**
+```bash
+# 1. Récupérer les informations du token
+terraform output dashboard_admin_token
+
+# 2. Exécuter la commande fournie pour récupérer le token
+kubectl -n kubernetes-dashboard get secret dashboard-admin-token -o jsonpath='{.data.token}' | base64 -d
+
+# 3. Accéder au dashboard
+kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard 8443:443
+# Puis aller sur https://localhost:8443 et utiliser le token
+```
+
+**Méthode 5 : Solution manuelle (si Terraform n'est pas utilisé)**
+```bash
+# 1. Créer un service account temporaire avec permissions admin
+kubectl create serviceaccount temp-admin -n kubernetes-dashboard
+kubectl create clusterrolebinding temp-admin --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:temp-admin
+
+# 2. Créer un secret pour le service account
+kubectl apply -f - <<EOF
+apiVersion: v1
+kind: Secret
+metadata:
+  name: temp-admin-token
+  namespace: kubernetes-dashboard
+  annotations:
+    kubernetes.io/service-account.name: temp-admin
+type: kubernetes.io/service-account-token
+EOF
+
+# 3. Récupérer le token
+kubectl -n kubernetes-dashboard get secret temp-admin-token -o jsonpath='{.data.token}' | base64 -d
+```
+
+**📋 Résumé des méthodes :**
+- **Méthode 4** (industrialisée) : **Recommandée** - Automatique et fiable via Terraform
+- **Méthode 1** : ⚠️ **Nécessite kubectl 1.24+** - Votre version (1.21.2) est trop ancienne
+- **Méthode 2** : Compatible - Fonctionne avec toutes les versions de kubectl
+- **Méthode 3** : ⚠️ **Ne fonctionne pas** - Le service account par défaut n'a pas de secret
+- **Méthode 5** : Manuelle - Pour les cas où Terraform n'est pas utilisé
+
+**🚨 Dépannage :**
+- Si le namespace n'existe pas : `kubectl create namespace kubernetes-dashboard`
+- Si le service account n'existe pas : Le dashboard n'est pas encore déployé
+- Si les secrets sont vides : Problème de configuration RBAC
+- **Pourquoi la Méthode 1 ne fonctionne pas** : Vous avez kubectl 1.21.2, mais la commande `create token` nécessite kubectl 1.24+. Utilisez la Méthode 4 (industrialisée) ou la Méthode 5 (manuelle).
+- **Pourquoi la Méthode 3 ne fonctionne pas** : Le service account `kubernetes-dashboard` créé par Helm n'a pas de secret associé (c'est normal avec les versions récentes de Kubernetes). Utilisez la Méthode 4 (industrialisée) ou la Méthode 5 (manuelle) qui créent un service account avec secret.
+- **Mise à jour de kubectl** (optionnel) : `brew upgrade kubectl` (macOS) ou télécharger depuis [kubernetes.io](https://kubernetes.io/docs/tasks/tools/)
+
+##### **🔧 Résolution du problème d'erreur CSRF**
+
+Si vous rencontrez l'erreur `Unknown error (200): Http failure during parsing for http://localhost:8000/api/v1/csrftoken/login` :
+
+**🎯 Solution recommandée :**
+```bash
+# 1. Utiliser le port-forward via Kong proxy (évite les problèmes CSRF)
+kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard-kong-proxy 8443:443
+
+# 2. Accéder via le navigateur sur https://localhost:8443
+# 3. Sélectionner "Token" comme méthode d'authentification
+# 4. Coller le token récupéré avec la commande ci-dessous
+kubectl -n kubernetes-dashboard get secret dashboard-admin-token -o jsonpath='{.data.token}' | base64 -d
+```
+
+**🔍 Pourquoi cette erreur se produit :**
+- Le dashboard utilise Kong comme proxy pour gérer les requêtes
+- L'accès direct au service web peut causer des problèmes de validation CSRF
+- Le port-forward via Kong proxy résout ces problèmes
+
+**✅ Vérification que tout fonctionne :**
+```bash
+# 1. Vérifier que le dashboard est accessible
+curl -k -I https://localhost:8443
+
+# 2. Tester l'API CSRF via Kong
+curl -k -X GET https://localhost:8443/api/v1/csrftoken/login
+
+# 3. Vérifier que le token est valide
+kubectl -n kubernetes-dashboard get secret dashboard-admin-token -o jsonpath='{.data.token}' | base64 -d | wc -c
+```
+
+##### **Créer un utilisateur admin (optionnel)**
+
+**1. Créer l'utilisateur admin**
+```bash
+# Créer un service account admin
+kubectl create serviceaccount admin-user -n kubernetes-dashboard
+
+# Lui donner les permissions d'administrateur
+kubectl create clusterrolebinding admin-user --clusterrole=cluster-admin --serviceaccount=kubernetes-dashboard:admin-user
+```
+
+**2. Récupérer le token de l'utilisateur admin**
+
+**Méthode 1 : Commande moderne (⚠️ Nécessite kubectl 1.24+)**
+```bash
+# Cette méthode fonctionne UNIQUEMENT avec kubectl 1.24+ et Kubernetes 1.24+
+# Votre version actuelle : kubectl 1.21.2 (trop ancienne)
+kubectl -n kubernetes-dashboard create token admin-user
+
+# Si vous obtenez "unknown command 'token'", utilisez la Méthode 4 (industrialisée)
+```
+
+**Méthode 2 : Récupération depuis le secret**
+```bash
+kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa admin-user -o jsonpath='{.secrets[0].name}') -o jsonpath='{.data.token}' | base64 -d
+```
+
+**Méthode 3 : Alternative avec jq (si installé)**
+```bash
+kubectl -n kubernetes-dashboard get secret $(kubectl -n kubernetes-dashboard get sa admin-user -o jsonpath='{.secrets[0].name}') -o json | jq -r '.data.token' | base64 -d
+```
+
+#### **📊 Monitoring et Métriques**
+
+Les métriques sont activées par défaut. Pour les visualiser :
+```bash
+# Vérifier les métriques
+kubectl get servicemonitor -n kubernetes-dashboard
+
+# Port forward pour Prometheus (si configuré)
+kubectl port-forward -n monitoring service/prometheus-server 9090:80
+```
+
+#### **🔧 Configuration avancée**
+
+##### **Activer l'ingress**
+```hcl
+# Dans terraform.tfvars
+dashboard_ingress_enabled = true
+dashboard_ingress_class   = "nginx"
+dashboard_ingress_hosts = [
+  {
+    host  = "dashboard.yourdomain.com"
+    paths = ["/"]
+  }
+]
+```
+
+##### **Activer le Load Balancer**
+```hcl
+# Dans terraform.tfvars
+create_load_balancer = true
+load_balancer_annotations = {
+  "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
+}
+```
+
+#### **📝 Outputs utiles**
+
+```bash
+# Afficher tous les outputs du dashboard
+terraform output | grep dashboard
+
+# Afficher les URLs d'accès
+terraform output dashboard_access_urls
+
+# Afficher les commandes kubectl
+terraform output dashboard_kubectl_commands
+
+# Afficher la configuration
+terraform output dashboard_configuration
+
+# Récupérer les informations du token d'authentification
+terraform output dashboard_admin_token
+```
+
+#### **🏭 Industrialisation avec Terraform**
+
+Le dashboard Kubernetes est entièrement industrialisé avec Terraform :
+
+**✅ Ressources créées automatiquement :**
+- Service Account `dashboard-admin` avec permissions cluster-admin
+- ClusterRoleBinding pour les permissions
+- Secret `dashboard-admin-token` pour l'authentification
+- Configuration RBAC complète
+
+**✅ Avantages de l'approche Terraform :**
+- **Reproductible** : Même configuration à chaque déploiement
+- **Versionnable** : Configuration dans le code source
+- **Automatisée** : Pas d'intervention manuelle
+- **Idempotente** : Peut être exécutée plusieurs fois sans problème
+- **Intégrée** : Fait partie de l'infrastructure complète
+
+**✅ Utilisation complète (workflow recommandé) :**
+```bash
+# 1. Vérifier que le dashboard est déployé
+kubectl get pods -n kubernetes-dashboard
+
+# 2. Récupérer les informations du token
+terraform output dashboard_admin_token
+
+# 3. Récupérer le token d'authentification
+kubectl -n kubernetes-dashboard get secret dashboard-admin-token -o jsonpath='{.data.token}' | base64 -d
+
+# 4. Accéder au dashboard via Kong proxy (évite les problèmes CSRF)
+kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard-kong-proxy 8443:443
+
+# 5. Ouvrir le navigateur sur https://localhost:8443
+# 6. Sélectionner "Token" et coller le token récupéré à l'étape 3
+```
+
+**✅ Commandes de vérification :**
+```bash
+# Vérifier les ressources créées
+kubectl get serviceaccount -n kubernetes-dashboard | grep dashboard-admin
+kubectl get clusterrolebinding | grep dashboard-admin
+kubectl get secret -n kubernetes-dashboard | grep dashboard-admin-token
+
+# Vérifier les permissions
+kubectl auth can-i '*' '*' --as=system:serviceaccount:kubernetes-dashboard:dashboard-admin
+```
+
+**✅ Test complet du dashboard :**
+```bash
+# 1. Vérifier que tout fonctionne
+kubectl get pods -n kubernetes-dashboard
+kubectl get serviceaccount -n kubernetes-dashboard | grep dashboard-admin
+kubectl get secret -n kubernetes-dashboard | grep dashboard-admin-token
+
+# 2. Récupérer et tester le token
+TOKEN=$(kubectl -n kubernetes-dashboard get secret dashboard-admin-token -o jsonpath='{.data.token}' | base64 -d)
+echo "Token récupéré: ${TOKEN:0:50}..."
+
+# 3. Tester l'accès au dashboard via Kong proxy (recommandé)
+kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard-kong-proxy 8443:443 &
+echo "Dashboard accessible sur: https://localhost:8443"
+echo "Token: $TOKEN"
+
+# 4. Vérifier que le dashboard répond correctement
+sleep 5
+curl -k -I https://localhost:8443
+curl -k -X GET https://localhost:8443/api/v1/csrftoken/login
+```
+
+#### **🚨 Dépannage**
+
+##### **Problèmes courants**
+1. **Dashboard inaccessible** : Vérifiez les pods avec `kubectl get pods -n kubernetes-dashboard`
+2. **Erreur d'authentification** : Vérifiez les rôles RBAC avec `kubectl get clusterrolebinding kubernetes-dashboard`
+3. **Problèmes d'ingress** : Vérifiez que le contrôleur d'ingress est installé
+
+##### **Commandes de diagnostic**
+```bash
+# Vérifier l'état des pods
+kubectl get pods -n kubernetes-dashboard
+
+# Vérifier les services
+kubectl get services -n kubernetes-dashboard
+
+# Vérifier les logs
+kubectl logs -n kubernetes-dashboard deployment/kubernetes-dashboard
+
+# Vérifier les événements
+kubectl get events -n kubernetes-dashboard
 ```
 
 ### Tags
@@ -462,6 +844,12 @@ kubectl get pods
 - Métriques des nœuds
 - Logs RDS
 
+### Kubernetes Dashboard
+- Interface web pour la gestion du cluster
+- Visualisation des pods, services, namespaces
+- Métriques et logs en temps réel
+- Gestion des ressources et déploiements
+
 ### Coûts estimés
 - **EKS Cluster** : ~$73/mois
 - **EC2 Nodes (4x t3.large)** : ~$240/mois
@@ -512,6 +900,10 @@ terraform destroy -var="project_name=erp-app" -auto-approve
 terraform destroy -target=aws_eks_cluster.main
 terraform destroy -target=aws_db_instance.mysql
 terraform destroy -target=aws_ecr_repository.erp_services
+
+# Détruire le dashboard Kubernetes
+terraform destroy -target=helm_release.kubernetes_dashboard
+terraform destroy -target=kubernetes_namespace.kubernetes_dashboard
 
 # Détruire par type de ressource
 terraform destroy -target='aws_ecr_repository.*'
@@ -601,6 +993,8 @@ aws configure list-profiles
 3. **Backup** : Configurez des sauvegardes automatiques
 4. **Monitoring** : Activez CloudWatch pour le monitoring
 5. **Scaling** : Ajustez les paramètres selon vos besoins
+6. **Dashboard** : Le dashboard Kubernetes est activé par défaut, désactivez-le si non nécessaire
+7. **Accès** : Utilisez le port-forward pour accéder au dashboard en local
 
 ## 🔗 Liens utiles
 

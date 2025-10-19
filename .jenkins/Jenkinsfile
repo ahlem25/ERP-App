@@ -663,7 +663,7 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ${serviceName}-deployment
+  name: ${serviceName}
   namespace: ${namespace}
   labels:
     app: erp-app
