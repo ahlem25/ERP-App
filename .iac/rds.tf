@@ -23,6 +23,16 @@ resource "aws_security_group" "rds" {
     security_groups = [aws_security_group.eks_nodes.id]
   }
 
+  # Règle pour autoriser l'accès depuis n'importe où (pour le développement)
+  # En production, cette règle devrait être supprimée ou restreinte
+  ingress {
+    from_port   = 3306
+    to_port     = 3306
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+    description = "MySQL access from anywhere (dev only)"
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -65,6 +75,7 @@ resource "aws_db_instance" "mysql" {
 
   skip_final_snapshot = true
   deletion_protection = false
+  publicly_accessible = true
 
   tags = merge(var.tags, {
     Name    = "erp-database-${each.key}"
