@@ -7,15 +7,14 @@ spring:
       profile: ${SPRING_PROFILES_ACTIVE:dev}
   config:
     import: "configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8012}"
-      profile: ${spring.profiles.active}
 
 # Configuration Keycloak
 keycloak:
-  server-url: http://localhost:8080
-  realm: erp-realm
-  client-id: admin-cli
-  username: ahlem.cherni
-  password: ahlem1234
+  server-url: ${KEYCLOAK_URL:http://localhost:8080}
+  realm: ${KEYCLOAK_REALM:erp-realm}
+  client-id: ${KEYCLOAK_CLIENT_ID:admin-cli}
+  username: ${KEYCLOAK_ADMIN_USERNAME:ahlem.cherni}
+  password: ${KEYCLOAK_ADMIN_PASSWORD:ahlem1234}
 
 # Configuration des logs
 logging:
