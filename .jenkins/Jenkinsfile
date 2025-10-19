@@ -509,11 +509,7 @@ metadata:
     app: erp-app
     environment: ${params.ENVIRONMENT}
 data:
-  # Database Configuration
-  # DB_URL: "jdbc:mysql://mysql-service:3306/erp_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-  # DB_USERNAME: "admin"
-
-  DB_URL: "jdbc:mysql://mysql-erp-dev-service:3306/erp_db?useSSL=false"
+  DB_URL: "jdbc:mysql://erp-database-${params.ENVIRONMENT}.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306/erp_${params.ENVIRONMENT}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
   DB_USERNAME: "admin"
 ---
 apiVersion: v1
@@ -532,6 +528,23 @@ data:
   KEYCLOAK_CLIENT_SECRET: "your-client-secret"
   KEYCLOAK_ADMIN_USERNAME: "admin"
   KEYCLOAK_ADMIN_PASSWORD: "passw0rd"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: erp-s3-config
+  namespace: ${namespace}
+  labels:
+    app: erp-app
+    environment: ${params.ENVIRONMENT}
+data:
+  # AWS S3 Configuration (Hardcoded from Terraform outputs)
+  AWS_S3_BUCKET_NAME: "erp-app-uploads"
+  AWS_S3_BUCKET_ARN: "arn:aws:s3:::erp-app-uploads"
+  AWS_S3_REGION: "eu-west-3"
+  AWS_S3_ENDPOINT: "https://erp-app-uploads.s3.eu-west-3.amazonaws.com"
+  AWS_S3_DOMAIN_NAME: "erp-app-uploads.s3.amazonaws.com"
+  AWS_S3_REGIONAL_DOMAIN_NAME: "erp-app-uploads.s3.eu-west-3.amazonaws.com"
 """
 
         // Save YAML file and apply it
@@ -591,17 +604,17 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
             "erp-config"            : ["erp-config-service"],
             "erp-service-discovery" : ["erp-global-config"],
             "erp-api-gateway"       : ["erp-global-config"],
-            "erp-user-service"      : ["erp-global-config", "erp-database-config",  "erp-keycloak-config"],
-            "erp-product-service"   : ["erp-global-config", "erp-database-config"],
-            "erp-inventory-service" : ["erp-global-config", "erp-database-config"],
-            "erp-supplier-service"  : ["erp-global-config", "erp-database-config"],
-            "erp-order-service"     : ["erp-global-config", "erp-database-config"],
-            "erp-client-service"    : ["erp-global-config", "erp-database-config"],
-            "erp-payment-service"   : ["erp-global-config", "erp-database-config"],
-            "erp-billing-service"   : ["erp-global-config", "erp-database-config"],
-            "erp-sales-service"     : ["erp-global-config", "erp-database-config"],
-            "erp-dashboard-service" : ["erp-global-config", "erp-database-config"],
-            "erp-scheduler-service" : ["erp-global-config", "erp-database-config"]
+            "erp-user-service"      : ["erp-global-config", "erp-database-config", "erp-keycloak-config", "erp-s3-config"],
+            "erp-product-service"   : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-inventory-service" : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-supplier-service"  : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-order-service"     : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-client-service"    : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-payment-service"   : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-billing-service"   : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-sales-service"     : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-dashboard-service" : ["erp-global-config", "erp-database-config", "erp-s3-config"],
+            "erp-scheduler-service" : ["erp-global-config", "erp-database-config", "erp-s3-config"]
         ]
 
         // 2️⃣ Extract service name without environment suffix

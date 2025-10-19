@@ -11,6 +11,10 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.23"
     }
+    mysql = {
+      source  = "petoju/mysql"
+      version = "~> 3.0"
+    }
   }
 }
 
@@ -33,5 +37,12 @@ provider "kubernetes" {
     command     = "aws"
     args        = ["eks", "get-token", "--cluster-name", aws_eks_cluster.main.name]
   }
+}
+
+# Configuration du provider MySQL
+provider "mysql" {
+  endpoint = "${aws_db_instance.mysql.endpoint}:${aws_db_instance.mysql.port}"
+  username = aws_db_instance.mysql.username
+  password = aws_db_instance.mysql.password
 }
 
