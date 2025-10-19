@@ -21,6 +21,8 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <aws.sdk.version>2.21.29</aws.sdk.version>
+        <spring-cloud-aws.version>3.1.0</spring-cloud-aws.version>
     </properties>
 
     <dependencies>
@@ -79,11 +81,13 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
+            <version>${aws.sdk.version}</version>
         </dependency>
         <!-- Spring Cloud AWS for S3 integration -->
         <dependency>
             <groupId>io.awspring.cloud</groupId>
             <artifactId>spring-cloud-aws-starter-s3</artifactId>
+            <version>${spring-cloud-aws.version}</version>
         </dependency>
     </dependencies>
 
