@@ -7,3 +7,13 @@ spring:
       profile: ${SPRING_PROFILES_ACTIVE:dev}
   config:
     import: "configserver:${SPRING_CLOUD_CONFIG_URI:http://localhost:8012}"
+
+# Configuration par défaut pour l'upload
+file:
+  upload:
+    local:
+      directory: uploads
+    s3:
+      bucket: ${AWS_S3_BUCKET_NAME:erp-app-uploads}
+      region: ${AWS_S3_REGION:eu-west-3}
+      endpoint: ${AWS_S3_ENDPOINT:https://erp-app-uploads.s3.eu-west-3.amazonaws.com}
