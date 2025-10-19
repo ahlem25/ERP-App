@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.UUID;
@@ -39,11 +38,8 @@ public class S3UploadService implements FileUploadService {
             String uniqueFilename = UUID.randomUUID().toString() + fileExtension;
 
             // Uploader vers S3
-            String s3Url = s3Template.upload(bucketName, uniqueFilename, file.getInputStream(), 
-                PutObjectRequest.builder()
-                    .contentType(file.getContentType())
-                    .contentLength(file.getSize())
-                    .build());
+            var s3Resource = s3Template.upload(bucketName, uniqueFilename, file.getInputStream());
+            String s3Url = s3Resource.getURL().toString();
 
             log.info("Fichier uploadé vers S3: {}", s3Url);
             return s3Url;

@@ -613,17 +613,17 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
             "erp-config"            : ["erp-config-service"],
             "erp-service-discovery" : ["erp-global-config"],
             "erp-api-gateway"       : ["erp-global-config"],
-            "erp-user-service"      : ["erp-global-config", "erp-database-config", "erp-keycloak-config", "erp-s3-config"],
+            "erp-user-service"      : ["erp-global-config", "erp-database-config"], // ,"erp-keycloak-config" pour keycloak
             "erp-product-service"   : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-inventory-service" : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-supplier-service"  : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-order-service"     : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-client-service"    : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-payment-service"   : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-billing-service"   : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-sales-service"     : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-dashboard-service" : ["erp-global-config", "erp-database-config", "erp-s3-config"],
-            "erp-scheduler-service" : ["erp-global-config", "erp-database-config", "erp-s3-config"]
+            "erp-inventory-service" : ["erp-global-config", "erp-database-config"],
+            "erp-supplier-service"  : ["erp-global-config", "erp-database-config"],
+            "erp-order-service"     : ["erp-global-config", "erp-database-config"],
+            "erp-client-service"    : ["erp-global-config", "erp-database-config"],
+            "erp-payment-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-billing-service"   : ["erp-global-config", "erp-database-config"],
+            "erp-sales-service"     : ["erp-global-config", "erp-database-config"],
+            "erp-dashboard-service" : ["erp-global-config", "erp-database-config"],
+            "erp-scheduler-service" : ["erp-global-config", "erp-database-config"]
         ]
 
         // 2️⃣ Extract service name without environment suffix

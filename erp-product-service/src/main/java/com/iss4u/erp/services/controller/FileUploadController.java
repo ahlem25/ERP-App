@@ -25,7 +25,7 @@ public class FileUploadController {
     private final LocalUploadService localUploadService;
     private final S3UploadService s3UploadService;
 
-    @Value("${spring.profiles.active:dev}")
+    @Value("${spring.profiles.active:default}")
     private String activeProfile;
 
     @PostMapping("/upload")
@@ -39,11 +39,15 @@ public class FileUploadController {
             // Uploader le fichier
             String filePath = uploadService.uploadFile(file);
             
+            // Extraire le nom du fichier depuis le chemin
+            String fileName = extractFileName(filePath);
+            
             // Préparer la réponse
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("message", "Fichier uploadé avec succès");
             response.put("filePath", filePath);
+            response.put("fileName", fileName);
             response.put("service", uploadService.getServiceName());
             response.put("originalFilename", file.getOriginalFilename());
             response.put("size", file.getSize());
@@ -100,9 +104,26 @@ public class FileUploadController {
         }
     }
 
+    private String extractFileName(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return "";
+        }
+        
+        // Pour les chemins S3 (URLs)
+        if (filePath.contains("s3.") || filePath.contains("amazonaws.com")) {
+            // Extraire le nom du fichier depuis l'URL S3
+            String[] parts = filePath.split("/");
+            return parts[parts.length - 1];
+        }
+        
+        // Pour les chemins locaux
+        String[] parts = filePath.split("[\\\\/]");
+        return parts[parts.length - 1];
+    }
+
     private FileUploadService selectUploadService() {
-        if ("dev".equals(activeProfile)) {
-            log.info("Sélection du service d'upload local pour le profil dev");
+        if ("default".equals(activeProfile)) {
+            log.info("Sélection du service d'upload local pour le profil default");
             return localUploadService;
         } else {
             log.info("Sélection du service d'upload S3 pour le profil: {}", activeProfile);
