@@ -189,3 +189,118 @@ output "s3_configuration" {
     }
   }
 }
+
+# =============================================================================
+# Kubernetes Dashboard Outputs
+# =============================================================================
+
+output "dashboard_enabled" {
+  description = "Dashboard Kubernetes activé"
+  value       = var.dashboard_enabled
+}
+
+output "dashboard_namespace" {
+  description = "Namespace du dashboard Kubernetes"
+  value       = var.dashboard_enabled ? kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name : null
+}
+
+output "dashboard_service_account" {
+  description = "ServiceAccount du dashboard"
+  value       = var.dashboard_enabled ? kubernetes_service_account.kubernetes_dashboard[0].metadata[0].name : null
+}
+
+output "dashboard_iam_role_arn" {
+  description = "ARN du rôle IAM pour le dashboard"
+  value       = var.dashboard_enabled ? aws_iam_role.kubernetes_dashboard_role[0].arn : null
+}
+
+output "dashboard_service_name" {
+  description = "Nom du service du dashboard"
+  value       = var.dashboard_enabled ? helm_release.kubernetes_dashboard[0].name : null
+}
+
+output "dashboard_service_port" {
+  description = "Port du service du dashboard"
+  value       = var.dashboard_enabled ? var.dashboard_service_port : null
+}
+
+output "dashboard_service_type" {
+  description = "Type du service du dashboard"
+  value       = var.dashboard_enabled ? var.dashboard_service_type : null
+}
+
+output "dashboard_ingress_enabled" {
+  description = "Ingress activé pour le dashboard"
+  value       = var.dashboard_enabled ? var.dashboard_ingress_enabled : null
+}
+
+output "dashboard_ingress_hosts" {
+  description = "Hôtes de l'ingress du dashboard"
+  value       = var.dashboard_enabled ? var.dashboard_ingress_hosts : []
+}
+
+output "dashboard_load_balancer_enabled" {
+  description = "Load Balancer activé pour le dashboard"
+  value       = var.dashboard_enabled ? var.create_load_balancer : null
+}
+
+output "dashboard_load_balancer_dns" {
+  description = "DNS du Load Balancer du dashboard"
+  value       = var.dashboard_enabled && var.create_load_balancer ? kubernetes_service.kubernetes_dashboard_lb[0].status[0].load_balancer[0].ingress[0].hostname : null
+}
+
+output "dashboard_load_balancer_ip" {
+  description = "IP du Load Balancer du dashboard"
+  value       = var.dashboard_enabled && var.create_load_balancer ? kubernetes_service.kubernetes_dashboard_lb[0].status[0].load_balancer[0].ingress[0].ip : null
+}
+
+# Commandes utiles pour le dashboard
+output "dashboard_kubectl_commands" {
+  description = "Commandes kubectl utiles pour accéder au dashboard"
+  value = var.dashboard_enabled ? {
+    get_dashboard_pods = "kubectl get pods -n ${kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name}"
+    get_dashboard_services = "kubectl get services -n ${kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name}"
+    get_dashboard_ingress = "kubectl get ingress -n ${kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name}"
+    port_forward = "kubectl port-forward -n ${kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name} service/kubernetes-dashboard 8443:443"
+    get_dashboard_token = "kubectl -n ${kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name} get secret $(kubectl -n ${kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name} get sa kubernetes-dashboard -o jsonpath='{.secrets[0].name}') -o go-template='{{.data.token | base64decode}}'"
+  } : {}
+}
+
+# URLs d'accès au dashboard
+output "dashboard_access_urls" {
+  description = "URLs d'accès au dashboard"
+  value = var.dashboard_enabled ? {
+    port_forward = "https://localhost:8443"
+    load_balancer = var.create_load_balancer ? "https://${kubernetes_service.kubernetes_dashboard_lb[0].status[0].load_balancer[0].ingress[0].hostname}" : null
+    ingress = var.dashboard_ingress_enabled ? "https://${var.dashboard_ingress_hosts[0].host}" : null
+  } : {}
+}
+
+# Configuration du dashboard
+output "dashboard_configuration" {
+  description = "Configuration du dashboard"
+  value = var.dashboard_enabled ? {
+    namespace = kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name
+    service_account = kubernetes_service_account.kubernetes_dashboard[0].metadata[0].name
+    admin_service_account = kubernetes_service_account.dashboard_admin[0].metadata[0].name
+    iam_role = aws_iam_role.kubernetes_dashboard_role[0].arn
+    chart_version = var.dashboard_chart_version
+    service_type = var.dashboard_service_type
+    service_port = var.dashboard_service_port
+    ingress_enabled = var.dashboard_ingress_enabled
+    metrics_enabled = var.dashboard_metrics_enabled
+    rbac_enabled = var.create_dashboard_rbac
+  } : null
+}
+
+# Token d'authentification pour le dashboard
+output "dashboard_admin_token" {
+  description = "Token d'authentification pour le dashboard (utilisez la commande kubectl pour le récupérer)"
+  value = var.dashboard_enabled ? {
+    secret_name = kubernetes_secret.dashboard_admin_token[0].metadata[0].name
+    namespace = kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name
+    service_account = kubernetes_service_account.dashboard_admin[0].metadata[0].name
+    command = "kubectl -n ${kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name} get secret ${kubernetes_secret.dashboard_admin_token[0].metadata[0].name} -o jsonpath='{.data.token}' | base64 -d"
+  } : null
+  sensitive = true
+}

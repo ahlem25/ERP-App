@@ -1,0 +1,95 @@
+# =============================================================================
+# Exemple de configuration pour le Dashboard Kubernetes
+# =============================================================================
+# Copiez ce fichier vers terraform.tfvars et ajoutez ces variables à votre configuration
+
+# =============================================================================
+# Activation du dashboard
+# =============================================================================
+
+dashboard_enabled = true
+
+# =============================================================================
+# Configuration de base du dashboard
+# =============================================================================
+
+dashboard_namespace = "kubernetes-dashboard"
+dashboard_chart_version = "7.0.0"
+
+# Configuration du service
+dashboard_service_type = "ClusterIP"  # ClusterIP, NodePort, LoadBalancer
+dashboard_service_port = 443
+
+# =============================================================================
+# Configuration de l'ingress (optionnel)
+# =============================================================================
+
+dashboard_ingress_enabled = true
+dashboard_ingress_class   = "nginx"
+
+dashboard_ingress_annotations = {
+  "kubernetes.io/ingress.class"                = "nginx"
+  "cert-manager.io/cluster-issuer"             = "letsencrypt-prod"
+  "nginx.ingress.kubernetes.io/ssl-redirect"   = "true"
+  "nginx.ingress.kubernetes.io/backend-protocol" = "HTTPS"
+}
+
+dashboard_ingress_hosts = [
+  {
+    host  = "dashboard.yourdomain.com"
+    paths = ["/"]
+  }
+]
+
+dashboard_ingress_tls = [
+  {
+    secret_name = "kubernetes-dashboard-tls"
+    hosts       = ["dashboard.yourdomain.com"]
+  }
+]
+
+# =============================================================================
+# Configuration des ressources
+# =============================================================================
+
+dashboard_resources = {
+  limits = {
+    cpu    = "500m"
+    memory = "512Mi"
+  }
+  requests = {
+    cpu    = "200m"
+    memory = "256Mi"
+  }
+}
+
+# =============================================================================
+# Configuration des métriques
+# =============================================================================
+
+dashboard_metrics_enabled = true
+
+# =============================================================================
+# Configuration du dashboard
+# =============================================================================
+
+dashboard_skip_login = false
+dashboard_items_per_page = 20
+
+# =============================================================================
+# Configuration RBAC
+# =============================================================================
+
+create_dashboard_rbac = true
+
+# =============================================================================
+# Configuration Load Balancer (optionnel)
+# =============================================================================
+
+create_load_balancer = false
+
+load_balancer_annotations = {
+  "service.beta.kubernetes.io/aws-load-balancer-type"            = "nlb"
+  "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
+  "service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled" = "true"
+}
