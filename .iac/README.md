@@ -7,9 +7,9 @@ Ce répertoire contient la configuration Terraform pour déployer l'infrastructu
 L'infrastructure comprend :
 - **VPC** avec sous-réseaux publics et privés
 - **EKS Cluster unique** pour orchestrer les conteneurs
-- **Kubernetes Namespaces** pour chaque environnement (dev, test, prod)
+- **Kubernetes Namespaces** pour chaque environnement (dev, test, pprd, prod)
 - **ECR Repositories** pour stocker les images Docker (un par service et environnement)
-- **RDS MySQL** pour la base de données
+- **RDS MySQL** : 4 instances séparées (une par environnement)
 - **S3 Buckets** pour le stockage des fichiers uploadés
 - **Security Groups** pour la sécurité réseau
 - **IAM Roles** pour les permissions
@@ -35,7 +35,7 @@ L'infrastructure comprend :
 - **`main.tf`** : Infrastructure principale (VPC, EKS, Security Groups, IAM)
 - **`eks-access.tf`** : Configuration des accès EKS et ConfigMap aws-auth
 - **`s3.tf`** : Configuration des buckets S3
-- **`rds.tf`** : Configuration RDS MySQL (commenté)
+- **`rds.tf`** : Configuration RDS MySQL (instances par environnement)
 - **`ecr.tf`** : Configuration des repositories ECR (avec force_delete pour la destruction)
 - **`policies.tf`** : Politiques IAM pour les services ERP
 - **`outputs.tf`** : Variables de sortie
@@ -80,7 +80,6 @@ terraform apply -auto-approve
 terraform destroy -target=aws_eks_cluster.main -target=aws_eks_node_group.main
 # Supprimer les autres ressources 
 terraform destroy -auto-approve
-#  Supprimer les ECR non vides 
 
 ```
 
@@ -192,11 +191,15 @@ Pour chaque service, 2 repositories :
 #### Service UI :
 - `erp-ui-service-stages` / `erp-ui-service-releases`
 
-### RDS MySQL
-- **Instance** : `db.t3.micro`
-- **Engine** : MySQL 8.0.36
-- **Storage** : 20GB (max 100GB)
+### RDS MySQL (Instances par environnement)
+- **Instances** : 4 instances séparées (une par environnement)
+- **Identifiants** : `erp-database-dev`, `erp-database-test`, `erp-database-pprd`, `erp-database-prod`
+- **Engine** : MySQL 8.0.43
+- **Instance Class** : `db.t3.micro`
+- **Storage** : 20GB (max 100GB) par instance
 - **Backup** : 7 jours de rétention
+- **Bases de données** : `erp_dev`, `erp_test`, `erp_pprd`, `erp_prod`
+- **Utilisateur** : `admin` / `erp_password_2024` (commun à toutes les instances)
 
 ### S3 Bucket
 - **Uploads Bucket** : Stockage des fichiers uploadés par les utilisateurs
@@ -215,6 +218,47 @@ Pour chaque service, 2 repositories :
 | `project_name` | Nom du projet | `erp-app` |
 | `vpc_cidr` | CIDR du VPC | `10.0.0.0/16` |
 | `node_desired_size` | Nombre de nœuds | `2` |
+
+### Configuration RDS pour l'application
+
+Après le déploiement, récupérez les informations RDS nécessaires pour configurer votre backend :
+
+```bash
+# Récupérer la configuration RDS complète par environnement
+terraform output environment_databases
+
+# Récupérer des informations spécifiques
+terraform output rds_endpoint
+terraform output rds_port
+```
+
+#### Configuration dans votre application Spring Boot
+
+Ajoutez ces variables d'environnement dans votre configuration :
+
+```yaml
+# application.yml
+spring:
+  datasource:
+    url: jdbc:mysql://erp-database-${ENVIRONMENT}.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306/erp_${ENVIRONMENT}?useSSL=false
+    username: admin
+    password: erp_password_2024
+    driver-class-name: com.mysql.cj.jdbc.Driver
+```
+
+#### URLs de connexion par environnement
+
+- **Dev** : `jdbc:mysql://erp-database-dev.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306/erp_dev?useSSL=false`
+- **Test** : `jdbc:mysql://erp-database-test.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306/erp_test?useSSL=false`
+- **PPRD** : `jdbc:mysql://erp-database-pprd.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306/erp_pprd?useSSL=false`
+- **Prod** : `jdbc:mysql://erp-database-prod.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306/erp_prod?useSSL=false`
+
+#### Endpoints RDS par environnement
+
+- **Dev** : `erp-database-dev.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306`
+- **Test** : `erp-database-test.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306`
+- **PPRD** : `erp-database-pprd.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306`
+- **Prod** : `erp-database-prod.cnsyguwokgsk.eu-west-3.rds.amazonaws.com:3306`
 
 ### Configuration S3 pour l'application
 
@@ -420,10 +464,10 @@ kubectl get pods
 
 ### Coûts estimés
 - **EKS Cluster** : ~$73/mois
-- **EC2 Nodes (2x t3.medium)** : ~$60/mois
-- **RDS MySQL (db.t3.micro)** : ~$15/mois
+- **EC2 Nodes (4x t3.large)** : ~$240/mois
+- **RDS MySQL (4x db.t3.micro)** : ~$60/mois (4 instances)
 - **S3 Bucket** : ~$5-15/mois (selon le volume de données)
-- **Total estimé** : ~$153-163/mois
+- **Total estimé** : ~$378-388/mois
 
 ## 🗑️ Destruction des Ressources
 
