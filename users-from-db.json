@@ -1,0 +1,121 @@
+[
+    {
+        "id": 1,
+        "prenom": "ahlem",
+        "nomFamille": "cherni",
+        "email": "Ahlem.cherni112@gmail.com",
+        "nomUtilisateur": "Ahlem.cherni112@gmail.com",
+        "actif": false,
+        "roles": [
+            {
+                "id": 1,
+                "nom": "Utilisateur",
+                "description": "Utilisateur standard",
+                "permissions": []
+            }
+        ],
+        "derniereMaj": "2025-01-19T00:00:00.000Z"
+    },
+    {
+        "id": 3,
+        "prenom": "ahlem",
+        "nomFamille": "cherni",
+        "email": "halouma@fusacq.com",
+        "nomUtilisateur": "halouma@fusacq.com",
+        "actif": false,
+        "roles": [
+            {
+                "id": 1,
+                "nom": "Utilisateur",
+                "description": "Utilisateur standard",
+                "permissions": []
+            }
+        ],
+        "derniereMaj": "2025-01-19T00:00:00.000Z"
+    },
+    {
+        "id": 4,
+        "prenom": "test",
+        "nomFamille": "sbsbsbsb",
+        "email": "test@gmail.com",
+        "nomUtilisateur": "test@gmail.com",
+        "actif": false,
+        "roles": [
+            {
+                "id": 1,
+                "nom": "Utilisateur",
+                "description": "Utilisateur standard",
+                "permissions": []
+            }
+        ],
+        "derniereMaj": "2025-01-19T00:00:00.000Z"
+    },
+    {
+        "id": 5,
+        "prenom": "Admin",
+        "nomFamille": "User",
+        "email": "admin@erp.com",
+        "nomUtilisateur": "admin@erp.com",
+        "actif": true,
+        "roles": [
+            {
+                "id": 1,
+                "nom": "Admin",
+                "description": "Administrateur",
+                "permissions": []
+            }
+        ],
+        "derniereMaj": "2025-01-19T00:38:29.000Z"
+    },
+    {
+        "id": 7,
+        "prenom": "Test",
+        "nomFamille": "User",
+        "email": "test.user@example.com",
+        "nomUtilisateur": "test.user@example.com",
+        "actif": true,
+        "roles": [
+            {
+                "id": 1,
+                "nom": "Utilisateur",
+                "description": "Utilisateur standard",
+                "permissions": []
+            }
+        ],
+        "derniereMaj": "2025-01-19T00:38:31.000Z"
+    },
+    {
+        "id": 17,
+        "prenom": "arbi",
+        "nomFamille": "hajer",
+        "email": "hajer@fusacq.com",
+        "nomUtilisateur": "hajer@fusacq.com",
+        "actif": true,
+        "roles": [
+            {
+                "id": 1,
+                "nom": "Manager",
+                "description": "Manager",
+                "permissions": []
+            }
+        ],
+        "derniereMaj": "2025-01-19T00:38:30.000Z"
+    },
+    {
+        "id": 23,
+        "prenom": "amira",
+        "nomFamille": "cherni",
+        "email": "amira@fusacq.com",
+        "nomUtilisateur": "amira@fusacq.com",
+        "actif": true,
+        "roles": [
+            {
+                "id": 1,
+                "nom": "Utilisateur",
+                "description": "Utilisateur standard",
+                "permissions": []
+            }
+        ],
+        "derniereMaj": "2025-01-19T00:38:30.000Z"
+    }
+]

@@ -1,0 +1,88 @@
+{
+    "realm": "erp-realm",
+    "displayName": "ERP Authentication",
+    "enabled": true,
+    "sslRequired": "external",
+    "registrationAllowed": true,
+    "loginWithEmailAllowed": true,
+    "duplicateEmailsAllowed": false,
+    "resetPasswordAllowed": true,
+    "editUsernameAllowed": false,
+    "bruteForceProtected": true,
+    "clients": [
+        {
+            "clientId": "erp-frontend",
+            "name": "ERP Frontend",
+            "enabled": true,
+            "redirectUris": [
+                "http://localhost:4200/authentication",
+                "http://localhost:4200/authentication/*",
+                "http://localhost:4200/dashboard",
+                "http://localhost:4200/",
+                "http://localhost:4200/assets/silent-check-sso.html",
+                "http://localhost:*/*",
+                "http://127.0.0.1:*/*"
+            ],
+            "webOrigins": [
+                "http://localhost:4200",
+                "http://localhost:*",
+                "http://127.0.0.1:*"
+            ],
+            "protocol": "openid-connect",
+            "publicClient": true,
+            "standardFlowEnabled": true,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": true,
+            "serviceAccountsEnabled": false
+        },
+        {
+            "clientId": "erp-backend",
+            "name": "ERP Backend",
+            "enabled": true,
+            "clientAuthenticatorType": "client-secret",
+            "secret": "erp-backend-secret",
+            "protocol": "openid-connect",
+            "publicClient": false,
+            "standardFlowEnabled": false,
+            "implicitFlowEnabled": false,
+            "directAccessGrantsEnabled": false,
+            "serviceAccountsEnabled": true,
+            "authorizationServicesEnabled": true
+        }
+    ],
+    "roles": {
+        "realm": [
+            {
+                "name": "ADMIN",
+                "description": "Administrator role"
+            },
+            {
+                "name": "USER",
+                "description": "Regular user role"
+            },
+            {
+                "name": "MANAGER",
+                "description": "Manager role"
+            }
+        ]
+    },
+    "users": [
+        {
+            "username": "admin",
+            "email": "admin@erp.com",
+            "firstName": "Admin",
+            "lastName": "User",
+            "enabled": true,
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "admin123",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "ADMIN"
+            ]
+        }
+    ]
+}

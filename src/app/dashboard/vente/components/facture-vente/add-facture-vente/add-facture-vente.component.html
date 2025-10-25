@@ -1,0 +1,177 @@
+<mat-card class="trinta-card add-facture-vente-card mb-25 bg-white border-none d-block">
+    <mat-card-header>
+        <mat-card-title>
+            <h5 class="mt-0 mb-0">Ajouter Facture de vente</h5>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <div style="max-height: 80vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
+            <form [formGroup]="factureVenteForm" (ngSubmit)="onSubmit()">
+                <div class="row">
+                    <!-- Série -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Série</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Série</mat-label>
+                            <input matInput formControlName="serie" required />
+                        </mat-form-field>
+                    </div>
+                    <!-- Date -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Date</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Date</mat-label>
+                            <input matInput [matDatepicker]="picker1" formControlName="date" required />
+                            <mat-datepicker-toggle matSuffix [for]="picker1"></mat-datepicker-toggle>
+                            <mat-datepicker #picker1></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+                    <!-- Heure Publication -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Heure de publication</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Heure de publication</mat-label>
+                            <input matInput formControlName="heurePublication" placeholder="HH:mm" />
+                        </mat-form-field>
+                    </div>
+                    <!-- Modifier Date Heure Publication -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox formControlName="modifierDateHeurePublication">
+                            Modifier date et heure publication
+                        </mat-checkbox>
+                    </div>
+                    <!-- Date d'échéance -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Date d'échéance</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Date d'échéance</mat-label>
+                            <input matInput [matDatepicker]="picker2" formControlName="dateEcheance" />
+                            <mat-datepicker-toggle matSuffix [for]="picker2"></mat-datepicker-toggle>
+                            <mat-datepicker #picker2></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+                    <!-- Est payé -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox formControlName="estPaye">
+                            Est payé
+                        </mat-checkbox>
+                    </div>
+                    <!-- Est Retour -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox formControlName="estRetour">
+                            Est retour
+                        </mat-checkbox>
+                    </div>
+                    <!-- Appliquer Retenue Impot -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox formControlName="appliquerRetenueImpot">
+                            Appliquer retenue impôt
+                        </mat-checkbox>
+                    </div>
+                    <!-- Numero Facture Fournisseur -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Numéro facture fournisseur</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Numéro facture fournisseur</mat-label>
+                            <input matInput formControlName="numeroFactureFournisseur" />
+                        </mat-form-field>
+                    </div>
+                    <!-- Date facture fournisseur -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Date facture fournisseur</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Date facture fournisseur</mat-label>
+                            <input matInput [matDatepicker]="picker3" formControlName="dateFactureFournisseur" />
+                            <mat-datepicker-toggle matSuffix [for]="picker3"></mat-datepicker-toggle>
+                            <mat-datepicker #picker3></mat-datepicker>
+                        </mat-form-field>
+                    </div>
+                    <!-- Centre de coûts -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Centre de coûts</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Centre de coûts</mat-label>
+                            <input matInput formControlName="centreDeCouts" />
+                        </mat-form-field>
+                    </div>
+                    <!-- Projet -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Projet</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Projet</mat-label>
+                            <input matInput formControlName="projet" />
+                        </mat-form-field>
+                    </div>
+                    <!-- Devise -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Devise</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Devise</mat-label>
+                            <mat-select formControlName="devise">
+                                <mat-option *ngFor="let devise of devises" [value]="devise">
+                                    {{devise}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <!-- Numero -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Numéro</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Numéro</mat-label>
+                            <input matInput formControlName="numero" />
+                        </mat-form-field>
+                    </div>
+                    <!-- Montant TTC -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Montant TTC</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Montant TTC</mat-label>
+                            <input matInput formControlName="montantTtc" type="number" />
+                        </mat-form-field>
+                    </div>
+                    <!-- Client -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Client</label>
+                        <mat-form-field appearance="outline" class="w-100">
+                            <mat-label>Client</mat-label>
+                            <mat-select formControlName="client">
+                                <mat-option *ngFor="let client of clients" [value]="client">
+                                    {{client.nom}}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <!-- Societe (optionnel) -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Société</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Société</mat-label>
+                            <input matInput formControlName="societe" />
+                        </mat-form-field>
+                    </div>
+                    <!-- Paiements (optionnel) -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Paiements</label>
+                        <mat-form-field class="w-100">
+                            <mat-label>Paiements</mat-label>
+                            <input matInput formControlName="paiements" />
+                        </mat-form-field>
+                    </div>
+                    <!-- TODO: Ajouter les champs pour societe et paiements si besoin -->
+                </div>
+                <div class="save-user-btn mt-3">
+                    <button mat-raised-button color="primary" type="submit" [disabled]="factureVenteForm.invalid"
+                        class="action-button">
+                        <mat-icon>save</mat-icon>
+                        Enregistrer
+                    </button>
+                    <button mat-raised-button color="warn" type="button" (click)="onCancel()" class="cancel-button">
+                        <mat-icon>cancel</mat-icon>
+                        Annuler
+                    </button>
+                </div>
+            </form>
+        </div>
+    </mat-card-content>
+</mat-card>

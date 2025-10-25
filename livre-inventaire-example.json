@@ -1,0 +1,38 @@
+{
+    "livreInventaire": {
+        "id": 1,
+        "articleId": 1,
+        "entrepotId": 1,
+        "lotId": null,
+        "mouvementId": null,
+        "numeroSerieId": null,
+        "quantite": 10.0,
+        "date": "2025-10-04"
+    },
+    "description": "Exemple de livre d'inventaire créé",
+    "details": {
+        "article": {
+            "id": 1,
+            "nom": "Article de test",
+            "code": "ART001"
+        },
+        "entrepot": {
+            "id": 1,
+            "nom": "Entrepôt principal",
+            "adresse": "123 Rue de l'Entrepôt"
+        }
+    },
+    "instructions": {
+        "creation": "Pour créer un livre d'inventaire via l'API :",
+        "endpoint": "POST /api/v1/livre-inventaires",
+        "headers": {
+            "Content-Type": "application/json"
+        },
+        "body": {
+            "articleId": 1,
+            "entrepotId": 1,
+            "quantite": 10.0,
+            "date": "2025-10-04"
+        }
+    }
+}

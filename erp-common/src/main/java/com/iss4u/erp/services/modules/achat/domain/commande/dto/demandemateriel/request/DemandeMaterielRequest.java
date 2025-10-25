@@ -1,0 +1,25 @@
+package com.iss4u.erp.services.modules.achat.domain.commande.dto.demandemateriel.request;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import com.iss4u.erp.services.modules.achat.domain.common.models.Article;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DemandeMaterielRequest {
+
+    private String serie;
+
+    private String type;
+
+    private String dateTransaction;
+
+    private String requisPar;
+
+    private String commentaire;
+    private Article article;
+
+
+}

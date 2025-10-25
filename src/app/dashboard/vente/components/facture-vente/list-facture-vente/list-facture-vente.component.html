@@ -1,0 +1,135 @@
+<mat-card class="trinta-card users-list-card mb-25 bg-white border-none d-block">
+    <mat-card-header class="d-flex justify-content-between align-items-center">
+        <mat-card-title>
+            <h5 class="mt-0 mb-0">Liste des Factures de Vente</h5>
+        </mat-card-title>
+        <div class="d-flex align-items-center gap-3">
+            <mat-form-field class="search-field" appearance="outline">
+                <mat-label>Rechercher...</mat-label>
+                <input matInput (keyup)="applyFilter($event)" #input>
+                <mat-icon matSuffix>search</mat-icon>
+            </mat-form-field>
+            <button mat-raised-button color="primary" class="add-button" (click)="openAddFactureVenteDialog()">
+                <mat-icon>add</mat-icon>
+                Ajouter
+            </button>
+        </div>
+    </mat-card-header>
+    <mat-card-content>
+        <div class="users-list-table">
+            <div class="table-responsive">
+                <table mat-table [dataSource]="dataSource" class="mat-elevation-z1">
+                    <ng-container matColumnDef="serie">
+                        <th mat-header-cell *matHeaderCellDef class="pl-0">
+                            <div class="d-flex align-items-center gap-2">
+                                <i-feather name="tag" class="column-icon"></i-feather>
+                                Série
+                            </div>
+                        </th>
+                        <td mat-cell *matCellDef="let element" class="pl-0">
+                            <span class="d-flex align-items-center gap-2">
+                                <i-feather name="tag" class="serie-icon"></i-feather>
+                                {{ element.serie }}
+                            </span>
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="date">
+                        <th mat-header-cell *matHeaderCellDef>
+                            <div class="d-flex align-items-center gap-2">
+                                <i-feather name="calendar" class="column-icon"></i-feather>
+                                Date
+                            </div>
+                        </th>
+                        <td mat-cell *matCellDef="let element">{{ element.date | date:'dd/MM/yyyy' }}</td>
+                    </ng-container>
+                    <ng-container matColumnDef="numero">
+                        <th mat-header-cell *matHeaderCellDef> Numéro </th>
+                        <td mat-cell *matCellDef="let element"> {{element.numero}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="montantTtc">
+                        <th mat-header-cell *matHeaderCellDef> Montant TTC </th>
+                        <td mat-cell *matCellDef="let element"> {{element.montantTtc}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="client">
+                        <th mat-header-cell *matHeaderCellDef> Client </th>
+                        <td mat-cell *matCellDef="let element"> {{element.client?.nom}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="dateEcheance">
+                        <th mat-header-cell *matHeaderCellDef> Date d'échéance </th>
+                        <td mat-cell *matCellDef="let element"> {{element.dateEcheance | date:'dd/MM/yyyy'}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="estPaye">
+                        <th mat-header-cell *matHeaderCellDef> Est payé </th>
+                        <td mat-cell *matCellDef="let element"> <mat-icon *ngIf="element.estPaye">check</mat-icon> </td>
+                    </ng-container>
+                    <ng-container matColumnDef="estRetour">
+                        <th mat-header-cell *matHeaderCellDef> Est retour </th>
+                        <td mat-cell *matCellDef="let element"> <mat-icon *ngIf="element.estRetour">check</mat-icon>
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="appliquerRetenueImpot">
+                        <th mat-header-cell *matHeaderCellDef> Retenue impôt </th>
+                        <td mat-cell *matCellDef="let element"> <mat-icon
+                                *ngIf="element.appliquerRetenueImpot">check</mat-icon> </td>
+                    </ng-container>
+                    <ng-container matColumnDef="numeroFactureFournisseur">
+                        <th mat-header-cell *matHeaderCellDef> N° Facture Fournisseur </th>
+                        <td mat-cell *matCellDef="let element"> {{element.numeroFactureFournisseur}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="dateFactureFournisseur">
+                        <th mat-header-cell *matHeaderCellDef> Date Facture Fournisseur </th>
+                        <td mat-cell *matCellDef="let element"> {{element.dateFactureFournisseur | date:'dd/MM/yyyy'}}
+                        </td>
+                    </ng-container>
+                    <ng-container matColumnDef="centreDeCouts">
+                        <th mat-header-cell *matHeaderCellDef> Centre de coûts </th>
+                        <td mat-cell *matCellDef="let element"> {{element.centreDeCouts}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="projet">
+                        <th mat-header-cell *matHeaderCellDef> Projet </th>
+                        <td mat-cell *matCellDef="let element"> {{element.projet}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="devise">
+                        <th mat-header-cell *matHeaderCellDef> Devise </th>
+                        <td mat-cell *matCellDef="let element"> {{element.devise}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="societe">
+                        <th mat-header-cell *matHeaderCellDef> Société </th>
+                        <td mat-cell *matCellDef="let element"> {{element.societe}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="paiements">
+                        <th mat-header-cell *matHeaderCellDef> Paiements </th>
+                        <td mat-cell *matCellDef="let element"> {{element.paiements}} </td>
+                    </ng-container>
+                    <ng-container matColumnDef="action">
+                        <th mat-header-cell *matHeaderCellDef class="text-end pr-0">
+                            <div class="d-flex align-items-center gap-2 justify-content-end">
+                                <i-feather name="settings" class="column-icon"></i-feather>
+                                Actions
+                            </div>
+                        </th>
+                        <td mat-cell *matCellDef="let element" class="text-end pr-0">
+                            <div class="action d-flex justify-content-end gap-2">
+                                <button mat-icon-button class="action-button edit"
+                                    (click)="openEditFactureVenteDialog(element)" matTooltip="Modifier">
+                                    <i-feather name="edit"></i-feather>
+                                </button>
+                                <button mat-icon-button class="action-button delete"
+                                    (click)="deleteFactureVente(element)" matTooltip="Supprimer">
+                                    <i-feather name="trash-2"></i-feather>
+                                </button>
+                                <button mat-icon-button class="action-button view"
+                                    (click)="openViewFactureVenteDialog(element)" matTooltip="Voir">
+                                    <i-feather name="file-text"></i-feather>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                </table>
+            </div>
+            <mat-paginator [pageSizeOptions]="[5, 10, 15]" showFirstLastButtons></mat-paginator>
+        </div>
+    </mat-card-content>
+</mat-card>

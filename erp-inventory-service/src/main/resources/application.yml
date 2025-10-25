@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: erp-inventory-service
+  profiles:
+    active: local
+
+eureka:
+  client:
+    enabled: false
+  instance:
+    enabled: false

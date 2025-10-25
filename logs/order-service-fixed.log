@@ -1,0 +1,29 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------< com.iss4u.erp.services:erp-order-service >--------------
+[INFO] Building erp-order-service 1.0.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.3.7:run (default-cli) > test-compile @ erp-order-service >>>
+[WARNING] The POM for com.iss4u.erp.lib:erp-common:jar:1.0.0-SNAPSHOT is missing, no dependency information available
+[WARNING] The POM for com.iss4u.erp.lib:utils-lib:jar:1.0.0-SNAPSHOT is missing, no dependency information available
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  2.711 s
+[INFO] Finished at: 2025-10-12T16:59:45+01:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal on project erp-order-service: Could not resolve dependencies for project com.iss4u.erp.services:erp-order-service:jar:1.0.0-SNAPSHOT
+[ERROR] dependency: com.iss4u.erp.lib:erp-common:jar:1.0.0-SNAPSHOT (compile)
+[ERROR] 	Could not find artifact com.iss4u.erp.lib:erp-common:jar:1.0.0-SNAPSHOT
+[ERROR] dependency: com.iss4u.erp.lib:utils-lib:jar:1.0.0-SNAPSHOT (compile)
+[ERROR] 	Could not find artifact com.iss4u.erp.lib:utils-lib:jar:1.0.0-SNAPSHOT
+[ERROR] 
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/DependencyResolutionException

@@ -1,0 +1,123 @@
+server:
+  port: 8014
+
+spring:
+  application:
+    name: erp-api-gateway-service
+  profiles:
+    active: standalone
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      default-filters:
+        - AddRequestHeader=X-Requested-With, XMLHttpRequest
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods: "GET,POST,PUT,DELETE,OPTIONS"
+            allowedHeaders: "*"
+            exposedHeaders: "Content-Type,Authorization,Accept"
+            allowCredentials: false
+      routes:
+        # Service utilisateur direct (URL fixe)
+        - id: user-service-direct
+          uri: http://localhost:8055
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - StripPrefix=1
+        # Service utilisateur via Eureka
+        - id: user-service-eureka
+          uri: lb://erp-user-service
+          predicates:
+            - Path=/api/**
+          filters:
+            - StripPrefix=0
+        # Service produits via Eureka
+        - id: product-service
+          uri: lb://erp-product-service
+          predicates:
+            - Path=/products-service/**
+          filters:
+            - StripPrefix=1
+        # Service devis via Eureka
+        - id: devis-service
+          uri: lb://erp-billing-service
+          predicates:
+            - Path=/devis-service/**
+          filters:
+            - StripPrefix=1
+        # Service inventaire via Eureka
+        - id: inventory-service
+          uri: lb://erp-inventory-service
+          predicates:
+            - Path=/inventory-service/**
+          filters:
+            - StripPrefix=1
+        # Service client via Eureka
+        - id: client-service
+          uri: lb://erp-client-service
+          predicates:
+            - Path=/api/v1/clients/**
+          filters:
+            - StripPrefix=0
+        # Service groupe client via Eureka
+        - id: groupe-client-service
+          uri: lb://erp-client-service
+          predicates:
+            - Path=/api/v1/groupe-clients/**
+          filters:
+            - StripPrefix=0
+        # Route de compatibilité pour solde-stocks (ancienne URL)
+        - id: inventory-service-compat
+          uri: lb://erp-inventory-service
+          predicates:
+            - Path=/inventory-service/api/v1/solde-stocks/**
+          filters:
+            - RewritePath=/inventory-service/api/v1/solde-stocks/(?<path>.*), /api/v1/soldes-stock/$\{path}
+            - StripPrefix=1
+        # Routes publiques via Eureka
+        - id: public-routes
+          uri: lb://erp-user-service
+          predicates:
+            - Path=/public/**
+          filters:
+            - StripPrefix=0
+        # Actuator via Eureka
+        - id: actuator-routes
+          uri: lb://erp-user-service
+          predicates:
+            - Path=/actuator/**
+          filters:
+            - StripPrefix=0
+        # Route par défaut via Eureka
+        - id: default-route
+          uri: lb://erp-user-service
+          predicates:
+            - Path=/**
+          filters:
+            - StripPrefix=0
+
+# Configuration Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8013/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 30
+    lease-expiration-duration-in-seconds: 90
+
+# Logging
+logging:
+  level:
+    com.iss4u.erp: DEBUG
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.web: DEBUG
+

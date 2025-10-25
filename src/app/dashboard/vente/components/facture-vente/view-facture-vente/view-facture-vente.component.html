@@ -1,0 +1,131 @@
+<mat-card class="trinta-card view-facture-vente-card mb-25 bg-white border-none d-block">
+    <mat-card-header>
+        <mat-card-title>
+            <h5 class="mt-0 mb-0">Voir la facture de vente</h5>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <div style="max-height: 80vh; overflow-y: auto; overflow-x: hidden; padding-right: 10px;">
+            <form>
+                <div class="row">
+                    <!-- Série -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Série</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.serie" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Date -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Date</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.date | date:'dd/MM/yyyy'" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Heure de publication -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Heure de publication</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.heurePublication" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Modifier date et heure publication -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox [checked]="data.modifierDateHeurePublication" disabled>
+                            Modifier date et heure publication
+                        </mat-checkbox>
+                    </div>
+                    <!-- Date d'échéance -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Date d'échéance</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.dateEcheance | date:'dd/MM/yyyy'" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Est payé -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox [checked]="data.estPaye" disabled>
+                            Est payé
+                        </mat-checkbox>
+                    </div>
+                    <!-- Est retour -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox [checked]="data.estRetour" disabled>
+                            Est retour
+                        </mat-checkbox>
+                    </div>
+                    <!-- Appliquer retenue impôt -->
+                    <div class="col-lg-6 d-flex align-items-center mt-3">
+                        <mat-checkbox [checked]="data.appliquerRetenueImpot" disabled>
+                            Appliquer retenue impôt
+                        </mat-checkbox>
+                    </div>
+                    <!-- Numéro facture fournisseur -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Numéro facture fournisseur</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.numeroFactureFournisseur" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Date facture fournisseur -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Date facture fournisseur</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.dateFactureFournisseur | date:'dd/MM/yyyy'" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Centre de coûts -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Centre de coûts</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.centreDeCouts" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Projet -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Projet</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.projet" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Devise -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Devise</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.devise" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Numero -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Numéro</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.numero" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Montant TTC -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Montant TTC</label>
+                        <mat-form-field class="w-100">
+                            <input matInput [value]="data.montantTtc" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- Client -->
+                    <div class="col-lg-6">
+                        <label class="label d-block fw-medium mb-10">Client</label>
+                        <mat-form-field class="w-100">
+                            <mat-icon matPrefix>person</mat-icon>
+                            <input matInput [value]="data.client?.nom" disabled />
+                        </mat-form-field>
+                    </div>
+                    <!-- TODO: Ajouter les champs pour societe et paiements si besoin -->
+                </div>
+                <div class="save-user-btn mt-3">
+                    <button mat-raised-button color="primary" type="button" (click)="onCancel()" class="cancel-button">
+                        <mat-icon>cancel</mat-icon>
+                        Fermer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </mat-card-content>
+</mat-card>

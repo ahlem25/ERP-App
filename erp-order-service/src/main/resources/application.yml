@@ -1,0 +1,49 @@
+spring:
+  config:
+    import: "configserver:http://localhost:8012"
+  application:
+    name: erp-order-service
+  profiles:
+    active: dev
+  cloud:
+    config:
+      profile: ${spring.profiles.active}
+  jackson:
+    serialization:
+      FAIL_ON_EMPTY_BEANS: false
+      WRITE_DATES_AS_TIMESTAMPS: false
+      FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS: false
+      FAIL_ON_SELF_REFERENCES: false
+      WRITE_SELF_REFERENCES_AS_NULL: true
+    deserialization:
+      FAIL_ON_UNKNOWN_PROPERTIES: false
+      FAIL_ON_MISSING_CREATOR_PROPERTIES: false
+    default-property-inclusion: non_null
+    time-zone: UTC
+  mvc:
+    throw-exception-if-no-handler-found: true
+    contentnegotiation:
+      favor-parameter: false
+      favor-path-extension: false
+      ignore-accept-header: false
+      media-types:
+        json: application/json
+  web:
+    resources:
+      add-mappings: false
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true
+
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: never
+    include-exception: false
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      enabled: true

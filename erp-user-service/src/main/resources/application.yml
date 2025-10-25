@@ -1,0 +1,75 @@
+server:
+  port: 8055
+
+spring:
+  application:
+    name: erp-user-service
+  
+  datasource:
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+      validation-timeout: 3000
+      leak-detection-threshold: 60000
+      housekeeping-period-ms: 0
+      keepalive-time: 0
+      connection-test-query: SELECT 1    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# Keycloak Configuration
+keycloak:
+  realm: erp-realm
+  auth-server-url: http://localhost:8080/auth
+  ssl-required: external
+  resource: erp-backend
+  credentials:
+    secret: erp-backend-secret
+  use-resource-role-mappings: true
+  cors: true
+
+# Security Configuration
+security:
+  oauth2:
+    resourceserver:
+      jwt:
+        issuer-uri: http://localhost:8080/auth/realms/erp-realm
+        jwk-set-uri: http://localhost:8080/auth/realms/erp-realm/protocol/openid-connect/certs
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    com.iss4u.erp: DEBUG
+    org.springframework.security: DEBUG
+    org.keycloak: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

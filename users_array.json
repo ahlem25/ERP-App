@@ -1,0 +1,9 @@
+[
+NULL,
+NULL,
+NULL,
+{"id":5,"prenom":"Admin","nomFamille":"User","email":"admin@erp.com","nomUtilisateur":"admin@erp.com","actif":,"roles":[{"id":1,"nom":"Utilisateur","description":"Utilisateur standard","permissions":[]}],"derniereMaj":"2025-09-19 00:38:29.000000"},
+{"id":7,"prenom":"Test","nomFamille":"User","email":"test.user@example.com","nomUtilisateur":"test.user@example.com","actif":,"roles":[{"id":1,"nom":"Utilisateur","description":"Utilisateur standard","permissions":[]}],"derniereMaj":"2025-09-19 00:38:31.000000"},
+{"id":17,"prenom":"arbi","nomFamille":"hajer","email":"hajer@fusacq.com","nomUtilisateur":"hajer@fusacq.com","actif":,"roles":[{"id":1,"nom":"Utilisateur","description":"Utilisateur standard","permissions":[]}],"derniereMaj":"2025-09-19 00:38:30.000000"},
+{"id":23,"prenom":"amira","nomFamille":"cherni","email":"amira@fusacq.com","nomUtilisateur":"amira@fusacq.com","actif":,"roles":[{"id":1,"nom":"Utilisateur","description":"Utilisateur standard","permissions":[]}],"derniereMaj":"2025-09-19 00:38:30.000000"}
+]

@@ -1,0 +1,43 @@
+server:
+  port: 8016
+
+spring:
+  application:
+    name: erp-product-service
+  profiles:
+    active: standalone
+  datasource:
+    hikari:
+      minimum-idle: 2
+      maximum-pool-size: 10
+      idle-timeout: 300000
+      max-lifetime: 1200000
+      connection-timeout: 20000
+      validation-timeout: 3000
+      leak-detection-threshold: 60000
+      housekeeping-period-ms: 0
+      keepalive-time: 0
+      connection-test-query: SELECT 1    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    console:
+      enabled: true
+
+# Configuration CORS
+cors:
+  allowed-origins: "*"
+  allowed-methods: "GET,POST,PUT,DELETE,OPTIONS"
+  allowed-headers: "*"
+  allow-credentials: false
+
+# Logging
+logging:
+  level:
+    com.iss4u.erp: DEBUG
+    org.springframework.web: DEBUG
