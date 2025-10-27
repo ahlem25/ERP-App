@@ -848,11 +848,14 @@ Si vous rencontrez des problèmes :
 Pour sauvegarder votre configuration Keycloak :
 
 ```bash
-# Exporter le realm
-docker exec keycloak-prod /opt/keycloak/bin/kc.sh export --realm erp-realm --file /tmp/erp-realm.json
+# Export complet du realm (avec utilisateurs)
+docker exec -it keycloak /opt/keycloak/bin/kc.sh export --dir /opt/keycloak/data/export --realm erp-realm --users realm_file
 
-# Copier le fichier d'export
-docker cp keycloak-prod:/tmp/erp-realm.json ./keycloak-realm-backup.json
+# Le résultat: Un fichier sera créé dans le conteneur :
+/opt/keycloak/data/export/erp-realm-realm.json
+
+# Récupérer le fichier exporté sur ta machine
+docker cp keycloak:/opt/keycloak/data/export/erp-realm-realm.json ./.keycloak/erp-realm-export.json
 ```
 
 ## 📚 Documentation supplémentaire

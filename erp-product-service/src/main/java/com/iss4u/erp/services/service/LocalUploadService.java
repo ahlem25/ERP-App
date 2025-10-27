@@ -79,4 +79,41 @@ public class LocalUploadService implements FileUploadService {
     public String getServiceName() {
         return "LocalUploadService";
     }
+    
+    @Override
+    public boolean deleteFile(String filePath) {
+        try {
+            // Extraire le fileName du filePath
+            String fileName = extractFileNameFromPath(filePath);
+            
+            // Construire le chemin complet dans le répertoire d'upload
+            Path path = Paths.get(uploadDirectory).resolve(fileName);
+            
+            if (!Files.exists(path)) {
+                log.warn("Fichier non trouvé pour suppression: {}", path);
+                return false;
+            }
+            
+            Files.delete(path);
+            log.info("Fichier supprimé localement: {}", path);
+            return true;
+            
+        } catch (IOException e) {
+            log.error("Erreur lors de la suppression du fichier local: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Extrait le nom du fichier d'un chemin complet
+     */
+    private String extractFileNameFromPath(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return filePath;
+        }
+        
+        // Extraire le nom du fichier du chemin
+        String[] parts = filePath.replace("\\", "/").split("/");
+        return parts[parts.length - 1];
+    }
 }

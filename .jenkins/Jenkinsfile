@@ -458,8 +458,10 @@ def createOrUpdateConfigMap(String namespace) {
         // Get port of services with environment suffix
         def configServiceName = "erp-config-${params.ENVIRONMENT}"
         def serviceDiscoveryName = "erp-service-discovery-${params.ENVIRONMENT}"
+        def productServiceName = "erp-product-service-${params.ENVIRONMENT}"
         def configServicePort = getServicePort("erp-config")
         def serviceDiscoveryPort = getServicePort("erp-service-discovery")
+        def productServicePort = getServicePort("erp-product-service")
 
         // Example shared ConfigMap (customize as needed)
         def configMapYaml = """
@@ -537,6 +539,7 @@ data:
   KEYCLOAK_CLIENT_ID: "erp-client"
   KEYCLOAK_ADMIN_USERNAME: "admin"
   KEYCLOAK_ADMIN_PASSWORD: "passw0rd"
+  PRODUCT_SERVICE_URL: "http://${productServiceName}:${productServicePort}"
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -613,7 +616,7 @@ def createOrUpdateKubernetesDeployment(String serviceName, String imageUrl, Stri
             "erp-config"            : ["erp-config-service"],
             "erp-service-discovery" : ["erp-global-config"],
             "erp-api-gateway"       : ["erp-global-config"],
-            "erp-user-service"      : ["erp-global-config", "erp-database-config"], // ,"erp-keycloak-config" pour keycloak
+            "erp-user-service"      : ["erp-global-config", "erp-database-config", "erp-keycloak-config"],
             "erp-product-service"   : ["erp-global-config", "erp-database-config", "erp-s3-config"],
             "erp-inventory-service" : ["erp-global-config", "erp-database-config"],
             "erp-supplier-service"  : ["erp-global-config", "erp-database-config"],

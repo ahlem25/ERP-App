@@ -74,4 +74,35 @@ public class S3UploadService implements FileUploadService {
     public String getServiceName() {
         return "S3UploadService";
     }
+    
+    @Override
+    public boolean deleteFile(String filePath) {
+        try {
+            // Extraire le nom du fichier de l'URL S3 ou du chemin
+            String fileName = extractFilenameFromPath(filePath);
+            
+            // Supprimer le fichier de S3 en utilisant juste le fileName
+            s3Template.deleteObject(bucketName, fileName);
+            
+            log.info("Fichier supprimé de S3: {}/{}", bucketName, fileName);
+            return true;
+            
+        } catch (Exception e) {
+            log.error("Erreur lors de la suppression du fichier S3: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Extrait le nom du fichier d'une URL S3 ou d'un chemin
+     */
+    private String extractFilenameFromPath(String filePath) {
+        if (filePath == null || filePath.isEmpty()) {
+            return filePath;
+        }
+        
+        // Extraire le nom du fichier (dernier élément après le dernier / ou \)
+        String[] parts = filePath.replace("\\", "/").split("/");
+        return parts[parts.length - 1];
+    }
 }
