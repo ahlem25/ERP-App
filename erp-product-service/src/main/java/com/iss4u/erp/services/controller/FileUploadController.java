@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -119,6 +120,42 @@ public class FileUploadController {
         // Pour les chemins locaux
         String[] parts = filePath.split("[\\\\/]");
         return parts[parts.length - 1];
+    }
+
+    @DeleteMapping("/upload/{filePath:.+}")
+    public ResponseEntity<Map<String, Object>> deleteFile(@PathVariable("filePath") String filePath) {
+        try {
+            log.info("Tentative de suppression de fichier: {} avec le profil: {}", filePath, activeProfile);
+            
+            // Sélectionner le service selon le profil
+            FileUploadService uploadService = selectUploadService();
+            
+            // Supprimer le fichier
+            boolean deleted = uploadService.deleteFile(filePath);
+            
+            Map<String, Object> response = new HashMap<>();
+            if (deleted) {
+                response.put("success", true);
+                response.put("message", "Fichier supprimé avec succès");
+                response.put("filePath", filePath);
+                response.put("service", uploadService.getServiceName());
+                log.info("Suppression réussie via le service: {}", uploadService.getServiceName());
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("success", false);
+                response.put("message", "Fichier non trouvé ou suppression échouée");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+            }
+            
+        } catch (Exception e) {
+            log.error("Erreur lors de la suppression du fichier: {}", e.getMessage());
+            
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Erreur lors de la suppression du fichier: " + e.getMessage());
+            
+            return ResponseEntity.internalServerError().body(errorResponse);
+        }
     }
 
     private FileUploadService selectUploadService() {

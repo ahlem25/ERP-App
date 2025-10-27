@@ -36,6 +36,9 @@ public class UserRequest {
     
     private Boolean emailVerified = false;
     
+    // Support both single role and list of roles
+    private String role;
+    
     private List<String> roles;
     
     private String phoneNumber;
@@ -45,4 +48,15 @@ public class UserRequest {
     private String jobTitle;
     
     private String profilePicture;
+    
+    // Helper method to get roles list - supports both single role and list of roles
+    public List<String> getRolesList() {
+        if (roles != null && !roles.isEmpty()) {
+            return roles;
+        }
+        if (role != null && !role.isEmpty()) {
+            return List.of(role);
+        }
+        return List.of();
+    }
 }

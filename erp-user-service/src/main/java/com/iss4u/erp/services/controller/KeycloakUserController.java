@@ -3,6 +3,7 @@ package com.iss4u.erp.services.controller;
 import com.iss4u.erp.services.modules.core.domain.dto.user.request.UserRequest;
 import com.iss4u.erp.services.modules.core.domain.dto.user.response.UserListResponse;
 import com.iss4u.erp.services.modules.core.domain.dto.user.response.UserResponse;
+import com.iss4u.erp.services.modules.core.domain.exception.UserAlreadyExistsException;
 import com.iss4u.erp.services.service.KeycloakUserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,11 +12,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1/keycloak/users")
 @Slf4j
-public class UserManagementController {
+public class KeycloakUserController {
     
     @Autowired
     private KeycloakUserService keycloakUserService;
@@ -64,7 +67,7 @@ public class UserManagementController {
      * Crée un nouvel utilisateur
      */
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserRequest userRequest) {
         try {
             log.info("Creating new user: {}", userRequest.getEmail());
             
@@ -72,9 +75,19 @@ public class UserManagementController {
             
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
             
+        } catch (UserAlreadyExistsException e) {
+            log.error("User already exists: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("error", "USER_ALREADY_EXISTS");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         } catch (Exception e) {
             log.error("Error creating user", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Erreur lors de la création de l'utilisateur: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
@@ -82,7 +95,7 @@ public class UserManagementController {
      * Met à jour un utilisateur
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(
+    public ResponseEntity<?> updateUser(
             @PathVariable String id,
             @Valid @RequestBody UserRequest userRequest) {
         
@@ -93,9 +106,19 @@ public class UserManagementController {
             
             return ResponseEntity.ok(updatedUser);
             
+        } catch (UserAlreadyExistsException e) {
+            log.error("User already exists during update: {}", e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            errorResponse.put("error", "USER_ALREADY_EXISTS");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
         } catch (Exception e) {
             log.error("Error updating user with ID: {}", id, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Erreur lors de la mise à jour de l'utilisateur: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
     
