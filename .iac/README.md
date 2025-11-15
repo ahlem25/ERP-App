@@ -77,6 +77,9 @@ terraform plan
 # 5. Appliquer: Déployer l'infrastructure
 terraform apply -auto-approve
 
+# NB: Problèeme dans eks-access.tf (END OF FILE)
+dos2unix ./eks-access.tf 
+
 # 6. Destruction: Destruction des Ressources
 # Supprimer les nodes EKS en premier 
 terraform destroy -target=aws_eks_cluster.main -target=aws_eks_node_group.main

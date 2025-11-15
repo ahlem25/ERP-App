@@ -552,11 +552,11 @@ metadata:
 data:
   # AWS S3 Configuration (Hardcoded from Terraform outputs)
   AWS_S3_BUCKET_NAME: "erp-app-uploads"
-  AWS_S3_BUCKET_ARN: "arn:aws:s3:::erp-app-uploads"
   AWS_S3_REGION: "eu-west-3"
   AWS_S3_ENDPOINT: "https://erp-app-uploads.s3.eu-west-3.amazonaws.com"
-  AWS_S3_DOMAIN_NAME: "erp-app-uploads.s3.amazonaws.com"
-  AWS_S3_REGIONAL_DOMAIN_NAME: "erp-app-uploads.s3.eu-west-3.amazonaws.com"
+  #AWS_S3_BUCKET_ARN: "arn:aws:s3:::erp-app-uploads"
+  #AWS_S3_DOMAIN_NAME: "erp-app-uploads.s3.amazonaws.com"
+  #AWS_S3_REGIONAL_DOMAIN_NAME: "erp-app-uploads.s3.eu-west-3.amazonaws.com"
 """
 
         // Save YAML file and apply it
