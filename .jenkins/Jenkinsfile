@@ -521,8 +521,13 @@ data:
   SPRING_DATASOURCE_HIKARI_MAX_LIFETIME: "900000"
   # Configuration Spring Boot pour éviter les connexions multiples
   SPRING_DATASOURCE_TYPE: "com.zaxxer.hikari.HikariDataSource"
-  SPRING_JPA_HIBERNATE_DDL_AUTO: "validate"
+  SPRING_JPA_HIBERNATE_DDL_AUTO: "update"
   SPRING_JPA_SHOW_SQL: "false"
+
+  # Option 1: Pour désactiver le Hibernate Dialect Configuration (MySQLDialect, PostgreSQLDialect, OracleDialect, SQLServerDialect, etc.)
+  SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: ""
+  # Option 2: Pour activer le Hibernate Dialect Configuration (MySQLDialect, PostgreSQLDialect, OracleDialect, SQLServerDialect, etc.)
+  #SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: "org.hibernate.dialect.MySQLDialect"
 ---
 apiVersion: v1
 kind: ConfigMap
