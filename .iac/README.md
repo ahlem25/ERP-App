@@ -383,6 +383,8 @@ kubectl port-forward -n kubernetes-dashboard service/kubernetes-dashboard-web 80
 ```
 Accédez à : `http://localhost:8080`
 
+Pour récupérer le token **il faut utiliser la méthode 4 pour que tout fonctionne correctement ✅ (les autes méthodes j'arrive pas à les tester)**
+
 ##### **3. Via Ingress (production)**
 Si vous avez configuré un ingress, accédez à l'URL configurée :
 `https://dashboard.yourdomain.com`

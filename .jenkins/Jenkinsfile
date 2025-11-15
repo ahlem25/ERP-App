@@ -539,7 +539,7 @@ metadata:
     environment: ${params.ENVIRONMENT}
 data:
   # Keycloak Configuration
-  KEYCLOAK_URL: "http://keycloak-service:8080"
+  KEYCLOAK_URL: "http://15.237.116.255:8080"
   KEYCLOAK_REALM: "erp-realm"
   KEYCLOAK_CLIENT_ID: "erp-client"
   KEYCLOAK_ADMIN_USERNAME: "admin"
