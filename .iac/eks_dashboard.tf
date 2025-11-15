@@ -264,7 +264,7 @@ resource "kubernetes_service_account" "dashboard_admin" {
     name      = "dashboard-admin"
     namespace = kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name
     labels = {
-      app = "kubernetes-dashboard"
+      app       = "kubernetes-dashboard"
       component = "admin"
     }
   }
@@ -333,36 +333,36 @@ resource "helm_release" "kubernetes_dashboard" {
         create = false
         name   = kubernetes_service_account.kubernetes_dashboard[0].metadata[0].name
       }
-      
+
       service = {
-        type = var.dashboard_service_type
-        port = var.dashboard_service_port
+        type        = var.dashboard_service_type
+        port        = var.dashboard_service_port
         annotations = {}
       }
-      
+
       ingress = {
-        enabled = var.dashboard_ingress_enabled
-        className = var.dashboard_ingress_class
+        enabled     = var.dashboard_ingress_enabled
+        className   = var.dashboard_ingress_class
         annotations = var.dashboard_ingress_annotations
-        hosts = var.dashboard_ingress_hosts
-        tls = var.dashboard_ingress_tls
+        hosts       = var.dashboard_ingress_hosts
+        tls         = var.dashboard_ingress_tls
       }
-      
+
       resources = var.dashboard_resources
-      
+
       metrics = {
         enabled = var.dashboard_metrics_enabled
         serviceMonitor = {
           enabled = var.dashboard_metrics_enabled
         }
       }
-      
+
       settings = {
-        clusterName = aws_eks_cluster.main.name
-        itemsPerPage = var.dashboard_items_per_page
-        logsAutoRefreshTimeInterval = 5
-        resourceAutoRefreshTimeInterval = 5
-        skipLoginPage = var.dashboard_skip_login
+        clusterName                      = aws_eks_cluster.main.name
+        itemsPerPage                     = var.dashboard_items_per_page
+        logsAutoRefreshTimeInterval      = 5
+        resourceAutoRefreshTimeInterval  = 5
+        skipLoginPage                    = var.dashboard_skip_login
         disableAccessDeniedNotifications = false
       }
     })
@@ -381,17 +381,17 @@ resource "helm_release" "kubernetes_dashboard" {
 
 resource "kubernetes_cluster_role_binding" "kubernetes_dashboard" {
   count = var.dashboard_enabled && var.create_dashboard_rbac ? 1 : 0
-  
+
   metadata {
     name = "kubernetes-dashboard"
   }
-  
+
   role_ref {
     api_group = "rbac.authorization.k8s.io"
     kind      = "ClusterRole"
     name      = "cluster-admin"
   }
-  
+
   subject {
     kind      = "ServiceAccount"
     name      = kubernetes_service_account.kubernetes_dashboard[0].metadata[0].name
@@ -405,13 +405,13 @@ resource "kubernetes_cluster_role_binding" "kubernetes_dashboard" {
 
 resource "kubernetes_service" "kubernetes_dashboard_lb" {
   count = var.dashboard_enabled && var.create_load_balancer ? 1 : 0
-  
+
   metadata {
-    name      = "kubernetes-dashboard-lb"
-    namespace = kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name
+    name        = "kubernetes-dashboard-lb"
+    namespace   = kubernetes_namespace.kubernetes_dashboard[0].metadata[0].name
     annotations = var.load_balancer_annotations
   }
-  
+
   spec {
     type = "LoadBalancer"
     selector = {
@@ -423,6 +423,6 @@ resource "kubernetes_service" "kubernetes_dashboard_lb" {
       protocol    = "TCP"
     }
   }
-  
+
   depends_on = [helm_release.kubernetes_dashboard]
 }

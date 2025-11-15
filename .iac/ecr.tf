@@ -39,7 +39,7 @@ resource "aws_ecr_repository" "erp_services" {
 
   tags = merge(var.tags, {
     Name    = each.key
-    Type    = split("-", each.key)[1]  # Extract repo type (stages/releases)
+    Type    = split("-", each.key)[1] # Extract repo type (stages/releases)
     Purpose = "ecr-repository"
   })
 }

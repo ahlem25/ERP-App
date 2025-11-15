@@ -10,7 +10,7 @@ variable "environments" {
   description = "Liste des environnements pour créer des namespaces dans le cluster EKS"
   type        = list(string)
   default     = ["dev", "test", "pprd", "prod"]
-  
+
   validation {
     condition     = alltrue([for env in var.environments : contains(["dev", "test", "pprd", "prod"], env)])
     error_message = "Les environnements doivent être dev, test, pprd ou prod."
@@ -27,10 +27,10 @@ variable "tags" {
   description = "Tags communs à appliquer aux ressources"
   type        = map(string)
   default = {
-    Project     = "erp-app"
-    ManagedBy   = "terraform"
-    Owner       = "devops-team"
-    CostCenter  = "engineering"
+    Project    = "erp-app"
+    ManagedBy  = "terraform"
+    Owner      = "devops-team"
+    CostCenter = "engineering"
   }
 }
 
@@ -50,7 +50,7 @@ variable "node_capacity_type" {
   description = "Type de capacité pour les nœuds EKS (ON_DEMAND ou SPOT)"
   type        = string
   default     = "ON_DEMAND"
-  
+
   validation {
     condition     = contains(["ON_DEMAND", "SPOT"], var.node_capacity_type)
     error_message = "Le type de capacité doit être ON_DEMAND ou SPOT."

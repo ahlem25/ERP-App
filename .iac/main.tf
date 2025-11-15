@@ -54,10 +54,10 @@ resource "aws_subnet" "private" {
   availability_zone = ["eu-west-3a", "eu-west-3b", "eu-west-3c"][count.index]
 
   tags = {
-    Name        = "${var.project_name}-private-subnet-${count.index + 1}"
+    Name    = "${var.project_name}-private-subnet-${count.index + 1}"
     Project = var.project_name
-    Project     = var.project_name
-    Type        = "private"
+    Project = var.project_name
+    Type    = "private"
   }
 }
 
@@ -71,9 +71,9 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name        = "${var.project_name}-public-rt"
+    Name    = "${var.project_name}-public-rt"
     Project = var.project_name
-    Project     = var.project_name
+    Project = var.project_name
   }
 }
 
@@ -102,9 +102,9 @@ resource "aws_security_group" "eks_cluster" {
   }
 
   tags = {
-    Name        = "${var.project_name}-eks-cluster-sg"
+    Name    = "${var.project_name}-eks-cluster-sg"
     Project = var.project_name
-    Project     = var.project_name
+    Project = var.project_name
   }
 }
 
@@ -134,9 +134,9 @@ resource "aws_security_group" "eks_nodes" {
   }
 
   tags = {
-    Name        = "${var.project_name}-eks-nodes-sg"
+    Name    = "${var.project_name}-eks-nodes-sg"
     Project = var.project_name
-    Project     = var.project_name
+    Project = var.project_name
   }
 }
 
@@ -160,8 +160,8 @@ resource "aws_eks_cluster" "main" {
   ]
 
   tags = {
-    Name        = "${var.project_name}-cluster"
-    Project     = var.project_name
+    Name    = "${var.project_name}-cluster"
+    Project = var.project_name
   }
 }
 
@@ -186,7 +186,7 @@ resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name
   node_group_name = "${var.project_name}-nodes"
   node_role_arn   = aws_iam_role.eks_nodes.arn
-  subnet_ids      = aws_subnet.public[*].id  # Utiliser les sous-réseaux publics
+  subnet_ids      = aws_subnet.public[*].id # Utiliser les sous-réseaux publics
 
   capacity_type  = var.node_capacity_type
   instance_types = var.node_instance_types
@@ -208,9 +208,9 @@ resource "aws_eks_node_group" "main" {
   ]
 
   tags = {
-    Name        = "${var.project_name}-nodes"
+    Name    = "${var.project_name}-nodes"
     Project = var.project_name
-    Project     = var.project_name
+    Project = var.project_name
   }
 }
 
